@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Katalog — UMKM Desa Sadomas</title>
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href="assets/style.css" />
+    <style>
+      /* Halaman ini berdiri sendiri -- tidak memakai kepala/kaki situs
+         publik dari assets/app.js, cuma memakai warna & huruf yang sama
+         lewat variabel di assets/style.css supaya tetap senada. */
+      body {
+        background: var(--krem);
+        color: var(--teks);
+        font-family: var(--huruf);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 20px 80px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 8px 0 4px;
+      }
+      fieldset {
+        border: 1px solid var(--garis);
+        border-radius: 12px;
+        padding: 16px;
+        margin: 0 0 20px;
+      }
+      legend {
+        padding: 0 8px;
+        font-weight: 700;
+        color: var(--hijau);
+      }
+      .f-baris {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+      label {
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      input[type="text"],
+      input[type="number"],
+      input[type="url"],
+      input[type="password"],
+      textarea,
+      select {
+        font: inherit;
+        padding: 8px 10px;
+        border: 1px solid var(--garis);
+        border-radius: 8px;
+        background: var(--putih);
+      }
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+      }
+      .baris-inline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .baris-inline label {
+        font-weight: 400;
+      }
+      button {
+        font: inherit;
+        font-weight: 700;
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background: var(--hijau);
+        color: #fff;
+      }
+      button.sekunder {
+        background: var(--netral);
+        color: var(--teks);
+      }
+      button.tombol-bahaya {
+        background: #b3261e;
+        color: #fff;
+      }
+      .daftar__item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--garis);
+      }
+      .daftar__aksi {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .status {
+        margin: 16px 0;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        min-height: 1px;
+      }
+      .status--ok {
+        background: var(--hijau-muda);
+        color: var(--hijau);
+      }
+      .status--galat {
+        background: #fbdedb;
+        color: #7a241f;
+      }
+      .kosong-kecil {
+        color: var(--redup);
+        font-size: 0.9rem;
+      }
+      .form-baris-tombol {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+      .catatan {
+        font-size: 0.85rem;
+        color: var(--redup);
+      }
+    </style>
+  </head>
+
+  <body>
+    <p><a href="index.html">&larr; Kembali ke situs</a></p>
+    <h1>Admin Katalog UMKM Desa Sadomas</h1>
+    <p class="catatan">
+      Halaman ini menulis langsung ke Google Sheet lewat Apps Script Web App.
+      Perubahan baru tampil di katalog publik setelah GitHub Actions
+      menariknya (jadwal atau tombol <strong>Run workflow</strong>) -- lihat
+      <code>PANDUAN-ADMIN.md</code>.
+    </p>
+
+    <fieldset>
+      <legend>Pengaturan</legend>
+      <form id="form-pengaturan">
+        <div class="f-baris">
+          <label for="p-url">Alamat Web App</label>
+          <input
+            id="p-url"
+            type="url"
+            placeholder="https://script.google.com/macros/s/.../exec"
+            required
+          />
+        </div>
+        <div class="f-baris">
+          <label for="p-sandi">Kata sandi admin</label>
+          <input id="p-sandi" type="password" autocomplete="off" />
+        </div>
+        <div class="baris-inline">
+          <input id="p-ingat" type="checkbox" />
+          <label for="p-ingat">Ingat kata sandi di peramban ini</label>
+        </div>
+        <div class="form-baris-tombol">
+          <button type="submit">Simpan Pengaturan</button>
+        </div>
+      </form>
+    </fieldset>
+
+    <fieldset>
+      <legend>Data</legend>
+      <div class="f-baris">
+        <label for="pilih-tab">Jenis data</label>
+        <select id="pilih-tab"></select>
+      </div>
+      <div class="form-baris-tombol">
+        <button type="button" id="btn-muat">Muat Daftar</button>
+        <button type="button" class="sekunder" id="btn-tambah-baru">
+          + Tambah Baru
+        </button>
+      </div>
+      <div id="daftar"></div>
+    </fieldset>
+
+    <div id="status" class="status" role="status"></div>
+
+    <fieldset>
+      <legend id="form-judul">Tambah data baru</legend>
+      <form id="form-data">
+        <div id="form-field"></div>
+        <div class="form-baris-tombol">
+          <button type="submit">Simpan</button>
+          <button type="button" class="sekunder" id="btn-batal" hidden>
+            Batal
+          </button>
+          <button type="button" class="tombol-bahaya" id="btn-hapus" hidden>
+            Hapus
+          </button>
+        </div>
+      </form>
+    </fieldset>
+
+    <script src="assets/admin.js"></script>
+  </body>
+</html>

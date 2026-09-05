@@ -1,0 +1,50 @@
+name: Tarik data dari Google Sheet
+
+# Jadwal cron GitHub bersifat "best effort" -- keterlambatan 5-30 menit
+# di luar jam ramai itu wajar, bukan tanda ada yang rusak. Kalau warga
+# perlu perubahan tampil SEKARANG, pakai tombol "Run workflow" di tab
+# Actions, jangan menunggu jadwal.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+# Perlu "contents: write" supaya workflow ini boleh nge-commit
+# data/katalog.js yang baru ke repositori.
+permissions:
+  contents: write
+
+# Kalau ada dua jalannya bersamaan (jadwal + tombol manual), yang lama
+# dibatalkan supaya tidak rebutan nge-commit.
+concurrency:
+  group: tarik-sheet
+  cancel-in-progress: true
+
+jobs:
+  tarik:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil kode repositori
+        uses: actions/checkout@v4
+
+      - name: Siapkan Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Tarik Sheet, buat data/katalog.js
+        env:
+          SHEET_ID: ${{ vars.SHEET_ID }}
+        run: node scripts/sheet-ke-katalog.mjs
+
+      - name: Commit kalau memang ada perubahan
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- data/katalog.js; then
+            echo "Tidak ada perubahan dari Sheet, tidak perlu commit."
+          else
+            git add data/katalog.js
+            git commit -m "Perbarui data dari Google Sheet"
+            git push
+          fi

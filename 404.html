@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Halaman tidak ditemukan — UMKM Desa Sadomas</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#1c4331" />
+    <!-- Halaman ini sengaja berdiri sendiri (gaya ditulis di dalam berkas).
+         GitHub Pages memakai 404.html untuk alamat apa pun yang salah,
+         termasuk alamat berfolder, sehingga tautan ke assets/ bisa meleset. -->
+    <style>
+      @font-face {
+        font-family: "Plus Jakarta Sans";
+        src: url("assets/fonts/plus-jakarta-sans.woff2") format("woff2");
+        font-weight: 200 800;
+        font-display: swap;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #fdfbf7;
+        color: #2c3e2d;
+        font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6;
+        padding: 2rem 1.25rem;
+        text-align: center;
+      }
+      .kotak {
+        max-width: 34rem;
+      }
+      .label {
+        display: inline-block;
+        background: #e6ece9;
+        color: #1c4331;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 0.4rem 0.9rem;
+        border-radius: 100px;
+      }
+      h1 {
+        color: #1c4331;
+        font-weight: 800;
+        font-size: clamp(1.7rem, 5vw, 2.6rem);
+        line-height: 1.15;
+        margin: 1rem 0 0.75rem;
+      }
+      p {
+        color: #6b7a6c;
+        margin: 0 0 1.75rem;
+      }
+      .aksi {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.85rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+        border: 1.5px solid transparent;
+      }
+      .utama {
+        background: #d35400;
+        color: #fff;
+      }
+      .garis {
+        border-color: #1c4331;
+        color: #1c4331;
+      }
+      a:focus-visible {
+        outline: 3px solid #d35400;
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="kotak">
+      <span class="label">Halaman tidak ada</span>
+      <h1>Alamat yang dibuka tidak ditemukan</h1>
+      <p>
+        Mungkin tautannya salah ketik atau halamannya sudah dipindahkan.
+        Kembali ke katalog untuk melihat produk yang tersedia.
+      </p>
+      <div class="aksi">
+        <a class="utama" href="index.html" id="ke-beranda">Ke beranda</a>
+        <a class="garis" href="katalog.html" id="ke-katalog">Buka katalog</a>
+      </div>
+    </div>
+
+    <script>
+      // Tentukan akar situs supaya tautan tetap benar walau alamat salahnya berfolder.
+      (function () {
+        var bagian = location.pathname.split("/").filter(Boolean);
+        var akar = "/";
+        if (location.hostname.endsWith("github.io") && bagian.length > 0) {
+          akar = "/" + bagian[0] + "/";
+        }
+        document.getElementById("ke-beranda").href = akar + "index.html";
+        document.getElementById("ke-katalog").href = akar + "katalog.html";
+      })();
+    </script>
+  </body>
+</html>

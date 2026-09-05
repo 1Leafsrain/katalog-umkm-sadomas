@@ -1,0 +1,6 @@
+Simpan foto produk dan foto desa di folder ini.
+
+Aturan:
+- nama berkas huruf kecil, tanpa spasi (contoh: gabin-tape-original.jpg)
+- ukuran di bawah 200 KB, lebar sekitar 1000 piksel
+- tuliskan nama berkasnya pada isian "foto" di data/katalog.js
