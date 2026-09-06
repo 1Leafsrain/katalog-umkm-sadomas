@@ -900,20 +900,6 @@ function halamanUmkm() {
       "Hubungi via WhatsApp</a>"
     : '<span class="tombol tombol--mati tombol--penuh">Nomor WhatsApp belum diisi</span>';
 
-  const galeri = (u.galeri || []).length
-    ? '<section class="blok"><div class="blok__isi pad-20-10">' +
-      '<div class="kepala-bagian"><div class="kepala-bagian__kiri">' +
-      '<h2 class="judul-24">Proses Pembuatan</h2>' +
-      "<p>" +
-      aman(u.keteranganGaleri || "") +
-      "</p></div></div>" +
-      '<div class="galeri">' +
-      u.galeri
-        .map((g) => gambar(g.foto, g.judul, "", g.judul || "Foto proses"))
-        .join("") +
-      "</div></div></section>"
-    : "";
-
   const kontakBaris = [
     ["jam", "Jam Buka", u.jamBuka],
     ["truk", "Pengiriman", u.pengiriman],
@@ -974,7 +960,6 @@ function halamanUmkm() {
     daftar.length +
     " produk</dd></div>" +
     "</dl></div></div></section>" +
-    galeri +
     /* Katalog produk UMKM */
     '<section class="blok"><div class="blok__isi pad-60">' +
     '<div class="kepala-bagian"><div class="kepala-bagian__kiri">' +

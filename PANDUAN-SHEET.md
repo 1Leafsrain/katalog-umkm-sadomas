@@ -129,10 +129,7 @@ Mengubah `nama` (label yang tampil) aman-aman saja.
 
 `slug`, `nama`, `kategori`, `pemilik`, `berdiri`, `pekerja`, `wa`,
 `alamat`, `foto`, `penilaian`, `jamBuka`, `pengiriman`, `fotoLokasi`,
-`keteranganGaleri`, lalu empat pasang untuk foto proses:
-`galeri1_judul`, `galeri1_foto`, `galeri2_judul`, `galeri2_foto`,
-`galeri3_judul`, `galeri3_foto`, `galeri4_judul`, `galeri4_foto`,
-dan `deskripsi`. Boleh diisi kurang dari 4 pasang, sisanya biarkan kosong.
+dan `deskripsi`.
 
 ### Tab `PRODUK`
 

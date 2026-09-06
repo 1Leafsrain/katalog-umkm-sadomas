@@ -92,7 +92,6 @@ const KATEGORI = [
    foto      = nama berkas di folder assets/img/. Kosongkan bila belum ada.
    penilaian = bintang 1-5. BIARKAN 0 selama belum ada penilaian nyata;
                bintang hanya muncul kalau isinya lebih dari 0.
-   galeri    = foto proses pembuatan (paling banyak 4). Boleh dikosongkan.
    ------------------------------------------------------------ */
 const UMKM = [
   {
@@ -109,14 +108,6 @@ const UMKM = [
     jamBuka: "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     pengiriman: "GANTI: contoh Ambil di tempat, kirim dalam kota",
     fotoLokasi: "",
-    keteranganGaleri:
-      "Empat tahap yang dikerjakan sendiri di dapur rumah.",
-    galeri: [
-      { judul: "Fermentasi tape tiga hari", foto: "" },
-      { judul: "Membungkus adonan dengan gabin", foto: "" },
-      { judul: "Menggoreng dengan api sedang", foto: "" },
-      { judul: "Mengemas setelah dingin", foto: "" },
-    ],
     deskripsi:
       "Gabin tape khas Sadomas: tape singkong dibalut biskuit gabin lalu digoreng " +
       "tipis sampai renyah. Diproduksi harian di dapur rumah, dijual dalam kemasan " +
@@ -136,8 +127,6 @@ const UMKM = [
     jamBuka: "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     pengiriman: "GANTI: contoh Ambil di tempat, kirim dalam kota",
     fotoLokasi: "",
-    keteranganGaleri: "",
-    galeri: [],
     deskripsi:
       "Opak beras ketan yang dijemur di halaman rumah dan dibakar di atas bara. " +
       "Warna merahnya dari bumbu, bukan pewarna. Dijual mentah maupun siap makan.",
@@ -156,8 +145,6 @@ const UMKM = [
     jamBuka: "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     pengiriman: "GANTI: contoh Ambil di tempat, kirim dalam kota",
     fotoLokasi: "",
-    keteranganGaleri: "",
-    galeri: [],
     deskripsi:
       "Emping melinjo tipis dari buah melinjo kebun sendiri. Tersedia mentah untuk " +
       "digoreng di rumah dan matang siap santap dengan pilihan rasa asin atau pedas.",
@@ -176,8 +163,6 @@ const UMKM = [
     jamBuka: "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     pengiriman: "GANTI: contoh Ambil di tempat, kirim dalam kota",
     fotoLokasi: "",
-    keteranganGaleri: "",
-    galeri: [],
     deskripsi:
       "Pembibitan palawija milik warga: jagung, kacang tanah, dan sayuran dataran " +
       "menengah. Melayani pembelian per tray untuk petani maupun pekarangan rumah.",
@@ -196,8 +181,6 @@ const UMKM = [
     jamBuka: "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     pengiriman: "GANTI: contoh Ambil di tempat, kirim dalam kota",
     fotoLokasi: "",
-    keteranganGaleri: "",
-    galeri: [],
     deskripsi:
       "Mangga, durian, dan picung hasil kebun warga. Karena mengikuti musim, " +
       "ketersediaan berubah tiap bulan. Tanyakan dulu lewat WhatsApp sebelum memesan.",
@@ -216,8 +199,6 @@ const UMKM = [
     jamBuka: "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     pengiriman: "GANTI: contoh Ambil di tempat, kirim dalam kota",
     fotoLokasi: "",
-    keteranganGaleri: "",
-    galeri: [],
     deskripsi:
       "Donat empuk dan brownies kukus buatan rumahan, dibuat segar setiap hari. " +
       "Cocok untuk oleh-oleh maupun camilan keluarga.",
@@ -236,8 +217,6 @@ const UMKM = [
     jamBuka: "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     pengiriman: "GANTI: contoh Ambil di tempat, kirim dalam kota",
     fotoLokasi: "",
-    keteranganGaleri: "",
-    galeri: [],
     deskripsi:
       "Kerupuk dari kulit sapi pilihan, direbus lalu dijemur sebelum digoreng " +
       "renyah. Diproduksi rumahan, dijual mentah maupun siap makan.",
@@ -256,8 +235,6 @@ const UMKM = [
     jamBuka: "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     pengiriman: "GANTI: contoh Ambil di tempat, kirim dalam kota",
     fotoLokasi: "",
-    keteranganGaleri: "",
-    galeri: [],
     deskripsi:
       "Sayuran segar hasil kebun warga: kol, sawi, cabai, dan tomat, dipanen " +
       "dari lahan dataran menengah di kaki Gunung Ciremai sesuai pesanan.",
@@ -280,17 +257,6 @@ const UMKM = [
       "Dititipkan ke warung sekitar setiap pagi, atau ambil langsung di " +
       "rumah (termasuk pemesan dari luar kota)",
     fotoLokasi: "",
-    keteranganGaleri: "Proses membentuk dan menggoreng jajanan pasar di rumah.",
-    galeri: [
-      {
-        judul: "Membentuk adonan pastel dan molen sebelum digoreng",
-        foto: "jajanan-bu-yeti-2.jpg",
-      },
-      {
-        judul: "Jajanan pasar siap dititipkan ke warung",
-        foto: "jajanan-bu-yeti-3.jpg",
-      },
-    ],
     deskripsi:
       "Jajanan pasar rumahan: molen, pastel, dan onde-onde, digoreng dan " +
       "dijual lepas tanpa kemasan seperti gorengan pada umumnya. Adonan " +

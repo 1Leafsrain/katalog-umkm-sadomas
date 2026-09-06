@@ -195,8 +195,6 @@ export function buatUmkm(rows, catat) {
       jamBuka: t(r.jamBuka),
       pengiriman: t(r.pengiriman),
       fotoLokasi: t(r.fotoLokasi),
-      keteranganGaleri: t(r.keteranganGaleri),
-      galeri: galeriEmpat(r, "galeri"),
       deskripsi: t(r.deskripsi),
     });
   });

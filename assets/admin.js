@@ -73,8 +73,6 @@ const SKEMA_TAB = {
       ["jamBuka", "Jam buka", TEKS],
       ["pengiriman", "Pengiriman", TEKS],
       ["fotoLokasi", "Nama berkas foto lokasi", TEKS],
-      ["keteranganGaleri", "Keterangan galeri proses", TEKS],
-      ...kolomGaleri(),
       ["deskripsi", "Deskripsi", AREA, true],
     ],
   },
