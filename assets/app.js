@@ -83,6 +83,96 @@ function aman(teks) {
   );
 }
 
+/* ---------- SEO: judul, deskripsi, canonical, Open Graph, data terstruktur ----------
+   umkm.html / produk.html / destinasi.html masing-masing SATU berkas dipakai
+   bergantian untuk banyak UMKM/produk/wisata lewat parameter URL (?u=, ?p=,
+   ?w=). Supaya Google (dan bagian <head> pada umumnya) tetap mendapat judul,
+   deskripsi, dan tautan kanonik yang BEDA untuk tiap isi, semuanya diatur di
+   sini lewat JavaScript setelah data yang diminta ditemukan -- bukan ditulis
+   statis di berkas HTML-nya, karena judul/isinya memang baru diketahui saat
+   itu juga.
+
+   Catatan: peninjau tautan yang TIDAK menjalankan JavaScript (mis. pratinjau
+   tautan WhatsApp/Facebook) hanya akan melihat judul & deskripsi generik yang
+   tertulis statis di HTML, bukan yang diatur di sini. Google sendiri
+   menjalankan JavaScript saat mengindeks, jadi bagian ini tetap terbaca. */
+
+function metaBernama(nama, konten) {
+  let el = document.querySelector('meta[name="' + nama + '"]');
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute("name", nama);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", konten);
+}
+
+function metaProperti(properti, konten) {
+  let el = document.querySelector('meta[property="' + properti + '"]');
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute("property", properti);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", konten);
+}
+
+function aturKanonik(href) {
+  let el = document.querySelector('link[rel="canonical"]');
+  if (!el) {
+    el = document.createElement("link");
+    el.setAttribute("rel", "canonical");
+    document.head.appendChild(el);
+  }
+  el.setAttribute("href", href);
+}
+
+/** Alamat penuh (https://...), dipakai untuk og:image/canonical -- media
+ *  sosial dan Google tidak selalu bisa menerka alamat relatif dengan benar. */
+function absolut(pathRelatif) {
+  if (!pathRelatif) return "";
+  try {
+    return new URL(pathRelatif, location.href).href;
+  } catch {
+    return "";
+  }
+}
+
+/** Potong teks panjang jadi seukuran cuplikan hasil pencarian (~155 huruf),
+ *  berhenti di batas kata supaya tidak memutus di tengah kata. */
+function ringkas(teks, maksimal) {
+  const bersih = String(teks || "").trim();
+  if (bersih.length <= maksimal) return bersih;
+  const potong = bersih.slice(0, maksimal);
+  const batasKata = potong.lastIndexOf(" ");
+  return (batasKata > 0 ? potong.slice(0, batasKata) : potong).trim() + "…";
+}
+
+/** Dipanggil dari halaman detail (UMKM/produk/wisata) setelah datanya
+ *  ditemukan, supaya <head> mencerminkan isi yang sedang dibuka. */
+function aturSeoHalaman({ judul, deskripsi, foto }) {
+  document.title = judul;
+  const kanonik = location.origin + location.pathname + location.search;
+  aturKanonik(kanonik);
+  if (deskripsi) metaBernama("description", deskripsi);
+  metaProperti("og:title", judul);
+  if (deskripsi) metaProperti("og:description", deskripsi);
+  metaProperti("og:url", kanonik);
+  metaProperti("og:type", "website");
+  if (foto) metaProperti("og:image", absolut("assets/img/" + foto));
+}
+
+/** Data terstruktur schema.org (JSON-LD) supaya Google berpeluang menampilkan
+ *  hasil pencarian yang lebih kaya (nama usaha, alamat, dsb). Nilai kosong
+ *  otomatis tidak ikut ditulis karena JSON.stringify membuang key
+ *  ber-value undefined. */
+function tambahDataTerstruktur(objek) {
+  const skrip = document.createElement("script");
+  skrip.type = "application/ld+json";
+  skrip.textContent = JSON.stringify(objek);
+  document.head.appendChild(skrip);
+}
+
 function nomorSiap(nomor) {
   return Boolean(nomor) && !String(nomor).toUpperCase().includes("GANTI");
 }
@@ -319,6 +409,13 @@ function susunKaki() {
 function pasangKerangka() {
   document.body.insertAdjacentHTML("afterbegin", susunKepala());
   document.body.insertAdjacentHTML("beforeend", susunKaki());
+
+  // Alamat kanonik dasar (tanpa parameter pencarian/kategori) supaya
+  // Google tidak menganggap katalog.html?k=kuliner sebagai halaman
+  // terpisah dari katalog.html biasa. Halaman detail (UMKM/produk/
+  // wisata) menimpanya lagi lewat aturSeoHalaman() supaya ikut
+  // menyertakan parameter ?u=/?p=/?w= yang justru menjadi isinya.
+  aturKanonik(location.origin + location.pathname);
 
   const tombol = $(".tombol-menu");
   const menu = $(".menu");
@@ -764,7 +861,20 @@ function halamanDestinasi() {
     return;
   }
 
-  document.title = w.nama + " — Wisata Desa " + DESA.nama;
+  aturSeoHalaman({
+    judul: w.nama + " — Wisata Desa " + DESA.nama,
+    deskripsi: ringkas(w.deskripsi, 155),
+    foto: w.foto,
+  });
+  tambahDataTerstruktur({
+    "@context": "https://schema.org",
+    "@type": "TouristAttraction",
+    name: w.nama,
+    description: w.deskripsi || undefined,
+    address: w.alamat || undefined,
+    image: w.foto ? absolut("assets/img/" + w.foto) : undefined,
+    url: location.origin + location.pathname + location.search,
+  });
 
   const pesan =
     "Halo, saya ingin bertanya tentang " +
@@ -881,7 +991,21 @@ function halamanUmkm() {
     return;
   }
 
-  document.title = u.nama + " — UMKM Desa " + DESA.nama;
+  aturSeoHalaman({
+    judul: u.nama + " — UMKM Desa " + DESA.nama,
+    deskripsi: ringkas(u.deskripsi, 155),
+    foto: u.foto,
+  });
+  tambahDataTerstruktur({
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: u.nama,
+    description: u.deskripsi || undefined,
+    address: u.alamat || undefined,
+    telephone: nomorSiap(u.wa) ? "+" + String(u.wa).replace(/\D/g, "") : undefined,
+    image: u.foto ? absolut("assets/img/" + u.foto) : undefined,
+    url: location.origin + location.pathname + location.search,
+  });
   const daftar = produkMilik(u.slug);
 
   const pesan =
@@ -1014,7 +1138,23 @@ function halamanProduk() {
   }
 
   const u = cariUmkm(p.umkm) || {};
-  document.title = p.nama + " — UMKM Desa " + DESA.nama;
+  aturSeoHalaman({
+    judul: p.nama + " — UMKM Desa " + DESA.nama,
+    deskripsi: ringkas(p.deskripsi, 155),
+    foto: p.foto,
+  });
+  // Tanpa "offers"/harga: kolom harga di sini sengaja berupa kisaran
+  // ("Rp15.000 - Rp18.000"), bukan angka tetap -- memaksakannya ke
+  // format price schema.org malah bisa keliru dan ditolak Google.
+  tambahDataTerstruktur({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.nama,
+    description: p.deskripsi || undefined,
+    image: p.foto ? absolut("assets/img/" + p.foto) : undefined,
+    brand: u.nama ? { "@type": "Brand", name: u.nama } : undefined,
+    url: location.origin + location.pathname + location.search,
+  });
 
   const pesan =
     sapaan(u.pemilik) +

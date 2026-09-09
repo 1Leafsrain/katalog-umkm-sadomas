@@ -16,15 +16,17 @@ wisata.html        daftar tempat wisata desa
 destinasi.html     rincian satu tempat wisata (dibuka lewat ?w=slug)
 404.html           halaman untuk alamat salah
 .nojekyll          mematikan pemrosesan Jekyll di GitHub Pages
+robots.txt         izin crawler + alamat sitemap, untuk Google
+sitemap.xml        daftar alamat situs untuk Google, DIBUAT OTOMATIS -- jangan edit langsung
 data/katalog.js    SATU-SATUNYA berkas yang perlu diubah untuk memperbarui isi
 assets/style.css   gaya tampilan
 assets/app.js      penyusun halaman + seluruh ikon (SVG di dalam berkas)
 assets/fonts/      huruf Plus Jakarta Sans, disimpan sendiri
 assets/img/        tempat menyimpan foto produk
 admin.html         form tambah/ubah/hapus data (opsional, lihat PANDUAN-ADMIN.md)
-scripts/           alat bantu Node.js untuk mode Google Sheet (opsional)
+scripts/           alat bantu Node.js (mode Google Sheet opsional, + pembuat sitemap.xml)
 scripts/apps-script/ kode Google Apps Script untuk form admin (opsional)
-.github/workflows/ workflow GitHub Actions untuk mode Google Sheet (opsional)
+.github/workflows/ workflow GitHub Actions (Sheet opsional; pembuat sitemap selalu aktif)
 ```
 
 ## Tiga cara memperbarui isi
@@ -124,6 +126,48 @@ Kalau nanti desa mendapat domain `sadomas.desa.id`:
 Perlu diingat, domain `.desa.id` hanya bisa didaftarkan oleh perangkat desa
 (Sekdes, Kasi, atau Kaur) dengan SK Kepala Desa, surat permohonan, dan surat
 kuasa. Sambil menunggu, alamat `github.io` tetap bisa dipakai dan disebarkan.
+
+## Supaya mudah ditemukan di Google
+
+Situs ini satu berkas HTML dipakai bergantian untuk banyak UMKM/produk/wisata
+lewat parameter URL (`umkm.html?u=slug`, dst). Supaya Google tetap melihat
+judul dan deskripsi yang beda untuk tiap isinya, `assets/app.js` mengatur
+`<title>`, meta description, tautan canonical, Open Graph, dan data
+terstruktur (schema.org) lewat JavaScript setiap kali salah satu halaman itu
+dibuka — bukan ditulis statis di berkas HTML, karena judulnya memang baru
+diketahui saat itu.
+
+**`sitemap.xml`** dibuat otomatis dari `data/katalog.js` (lihat
+`scripts/buat-sitemap.mjs`) — setiap UMKM, produk, dan wisata baru otomatis
+dapat baris sendiri, tidak perlu didaftar manual. Diperbarui otomatis lewat
+`.github/workflows/perbarui-sitemap.yml` setiap `data/katalog.js` berubah
+(baik lewat edit manual maupun lewat mode Sheet).
+
+**`robots.txt`** mengizinkan semua crawler dan menunjuk ke sitemap itu.
+
+Langkah manusia yang masih perlu dilakukan sekali:
+
+1. Daftarkan situsnya di [Google Search Console](https://search.google.com/search-console),
+   verifikasi kepemilikan, lalu kirim `sitemap.xml` lewat menu **Sitemaps**.
+2. Setelah ada perubahan besar (UMKM baru, dst), boleh percepat dengan
+   **URL Inspection → Request Indexing** di Search Console untuk halaman yang
+   penting — tapi ini tidak menjamin langsung tayang, Google tetap butuh
+   waktu untuk merayapi dan menilai halamannya.
+
+**Kalau alamat situs pindah** (ganti akun/repositori GitHub, atau pakai
+domain sendiri lewat `CNAME`), `BASE_URL` di `scripts/buat-sitemap.mjs` dan
+alamat `Sitemap:` di `robots.txt` harus ikut diubah manual — keduanya
+sengaja ditulis lengkap (bukan otomatis menerka alamat) karena dibuat oleh
+skrip Node yang berjalan di luar peramban, tidak tahu situsnya sedang
+dibuka lewat alamat apa.
+
+**Batasannya:** judul/deskripsi per-item yang diatur lewat JavaScript itu
+terbaca oleh Google (Google menjalankan JavaScript saat mengindeks), tapi
+**tidak** terbaca oleh pratinjau tautan yang tidak menjalankan JavaScript
+sama sekali, seperti WhatsApp atau Facebook — keduanya cuma akan menampilkan
+judul/deskripsi generik yang tertulis statis di berkas HTML. Membuatnya
+ikut menampilkan info per-item butuh perubahan arsitektur yang lebih besar
+(halaman statis per item), di luar cakupan perbaikan ini.
 
 ## Yang wajib diperiksa sebelum situs disebarkan
 
