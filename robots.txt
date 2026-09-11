@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://1leafsrain.github.io/katalog-umkm-sadomas/sitemap.xml

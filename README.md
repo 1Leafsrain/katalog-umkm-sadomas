@@ -16,15 +16,20 @@ wisata.html        daftar tempat wisata desa
 destinasi.html     rincian satu tempat wisata (dibuka lewat ?w=slug)
 404.html           halaman untuk alamat salah
 .nojekyll          mematikan pemrosesan Jekyll di GitHub Pages
+robots.txt         izin crawler + alamat sitemap, untuk Google
+sitemap.xml        daftar alamat situs untuk Google, DIBUAT OTOMATIS -- jangan edit langsung
+manifest.json      nama, warna, dan ikon untuk mode "instal ke HP" (PWA)
+sw.js              service worker -- membuat situs bisa dibuka tanpa internet
 data/katalog.js    SATU-SATUNYA berkas yang perlu diubah untuk memperbarui isi
 assets/style.css   gaya tampilan
 assets/app.js      penyusun halaman + seluruh ikon (SVG di dalam berkas)
 assets/fonts/      huruf Plus Jakarta Sans, disimpan sendiri
+assets/icons/      ikon PWA (dibuat dari lambang daun yang sama dengan favicon)
 assets/img/        tempat menyimpan foto produk
 admin.html         form tambah/ubah/hapus data (opsional, lihat PANDUAN-ADMIN.md)
-scripts/           alat bantu Node.js untuk mode Google Sheet (opsional)
+scripts/           alat bantu Node.js (mode Google Sheet opsional, + pembuat sitemap.xml)
 scripts/apps-script/ kode Google Apps Script untuk form admin (opsional)
-.github/workflows/ workflow GitHub Actions untuk mode Google Sheet (opsional)
+.github/workflows/ workflow GitHub Actions (Sheet opsional; pembuat sitemap selalu aktif)
 ```
 
 ## Tiga cara memperbarui isi
@@ -124,6 +129,85 @@ Kalau nanti desa mendapat domain `sadomas.desa.id`:
 Perlu diingat, domain `.desa.id` hanya bisa didaftarkan oleh perangkat desa
 (Sekdes, Kasi, atau Kaur) dengan SK Kepala Desa, surat permohonan, dan surat
 kuasa. Sambil menunggu, alamat `github.io` tetap bisa dipakai dan disebarkan.
+
+## Supaya mudah ditemukan di Google
+
+Situs ini satu berkas HTML dipakai bergantian untuk banyak UMKM/produk/wisata
+lewat parameter URL (`umkm.html?u=slug`, dst). Supaya Google tetap melihat
+judul dan deskripsi yang beda untuk tiap isinya, `assets/app.js` mengatur
+`<title>`, meta description, tautan canonical, Open Graph, dan data
+terstruktur (schema.org) lewat JavaScript setiap kali salah satu halaman itu
+dibuka — bukan ditulis statis di berkas HTML, karena judulnya memang baru
+diketahui saat itu.
+
+**`sitemap.xml`** dibuat otomatis dari `data/katalog.js` (lihat
+`scripts/buat-sitemap.mjs`) — setiap UMKM, produk, dan wisata baru otomatis
+dapat baris sendiri, tidak perlu didaftar manual. Diperbarui otomatis lewat
+`.github/workflows/perbarui-sitemap.yml` setiap `data/katalog.js` berubah
+(baik lewat edit manual maupun lewat mode Sheet).
+
+**`robots.txt`** mengizinkan semua crawler dan menunjuk ke sitemap itu.
+
+Langkah manusia yang masih perlu dilakukan sekali:
+
+1. Daftarkan situsnya di [Google Search Console](https://search.google.com/search-console),
+   verifikasi kepemilikan, lalu kirim `sitemap.xml` lewat menu **Sitemaps**.
+2. Setelah ada perubahan besar (UMKM baru, dst), boleh percepat dengan
+   **URL Inspection → Request Indexing** di Search Console untuk halaman yang
+   penting — tapi ini tidak menjamin langsung tayang, Google tetap butuh
+   waktu untuk merayapi dan menilai halamannya.
+
+**Kalau alamat situs pindah** (ganti akun/repositori GitHub, atau pakai
+domain sendiri lewat `CNAME`), `BASE_URL` di `scripts/buat-sitemap.mjs` dan
+alamat `Sitemap:` di `robots.txt` harus ikut diubah manual — keduanya
+sengaja ditulis lengkap (bukan otomatis menerka alamat) karena dibuat oleh
+skrip Node yang berjalan di luar peramban, tidak tahu situsnya sedang
+dibuka lewat alamat apa.
+
+**Batasannya:** judul/deskripsi per-item yang diatur lewat JavaScript itu
+terbaca oleh Google (Google menjalankan JavaScript saat mengindeks), tapi
+**tidak** terbaca oleh pratinjau tautan yang tidak menjalankan JavaScript
+sama sekali, seperti WhatsApp atau Facebook — keduanya cuma akan menampilkan
+judul/deskripsi generik yang tertulis statis di berkas HTML. Membuatnya
+ikut menampilkan info per-item butuh perubahan arsitektur yang lebih besar
+(halaman statis per item), di luar cakupan perbaikan ini.
+
+## Bisa "diinstal" ke HP dan dibuka tanpa internet (PWA)
+
+Situs ini adalah PWA (*Progressive Web App*) sederhana:
+
+- Di HP, tombol menu peramban punya pilihan **"Tambahkan ke layar Utama" /
+  "Install app"** — situs lalu punya ikon sendiri seperti aplikasi biasa,
+  terpisah dari peramban.
+- Halaman yang **sudah pernah dibuka** tetap bisa diakses saat tidak ada
+  internet.
+
+Diatur lewat tiga berkas: `manifest.json` (nama, ikon, warna tema),
+`sw.js` (service worker), dan `assets/icons/`. Didaftarkan otomatis oleh
+`assets/app.js` di setiap halaman.
+
+**Cara kerja mode offline-nya sengaja dibedakan per jenis berkas:**
+
+- **Halaman & `data/katalog.js`** — begitu online, situs SELALU mengambil
+  versi terbaru lebih dulu (baru disimpan untuk cadangan offline). Jadi
+  tidak perlu langkah "sinkron" manual — setiap dibuka dalam keadaan
+  online, otomatis dapat data terbaru; baru kalau memang tidak ada
+  internet, versi tersimpan terakhir yang dipakai.
+- **CSS, JS, font, foto** — dipakai dulu yang tersimpan (supaya cepat),
+  sambil diam-diam diperbarui di latar belakang.
+
+**Kalau menambah halaman HTML baru** (bukan sekadar UMKM/produk/wisata
+baru di `data/katalog.js`, tapi berkas `.html` baru), tambahkan namanya ke
+daftar `BERKAS_INTI` di `sw.js` dan naikkan `CACHE_VERSI` supaya peramban
+tahu perlu mengambil ulang. Menambah UMKM/produk/wisata baru **tidak**
+perlu mengubah `sw.js` sama sekali — otomatis ikut ter-cache karena
+`data/katalog.js` sendiri sudah masuk daftar inti.
+
+**Cara mengecek:** buka situs di Chrome, tekan F12 → tab **Application** →
+**Service Workers** (harus tertulis "activated and is running") dan
+**Manifest** (harus tampil nama & ikonnya, tanpa tanda error merah). Untuk
+mengetes mode offline: buka satu halaman, centang **Offline** di tab yang
+sama, lalu muat ulang.
 
 ## Yang wajib diperiksa sebelum situs disebarkan
 

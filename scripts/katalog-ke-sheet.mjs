@@ -83,12 +83,12 @@ await tulis(
   [
     "slug", "nama", "kategori", "pemilik", "berdiri", "pekerja", "wa",
     "alamat", "foto", "penilaian", "jamBuka", "pengiriman", "fotoLokasi",
-    "keteranganGaleri", ...kolomGaleriJudulFoto("galeri"), "deskripsi",
+    "deskripsi",
   ],
   UMKM.map((u) => [
     u.slug, u.nama, u.kategori, u.pemilik, u.berdiri, u.pekerja, u.wa,
     u.alamat, u.foto, u.penilaian, u.jamBuka, u.pengiriman, u.fotoLokasi,
-    u.keteranganGaleri, ...nilaiGaleriJudulFoto(u.galeri), u.deskripsi,
+    u.deskripsi,
   ]),
 );
 

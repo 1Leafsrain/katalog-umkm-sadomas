@@ -1,0 +1,44 @@
+name: Perbarui sitemap.xml
+
+# Menangkap perubahan MANUAL ke data/katalog.js (lewat editor GitHub atau
+# git push langsung). Perubahan lewat mode Google Sheet ditangani terpisah
+# di dalam tarik-sheet.yml, karena commit dari robot GitHub Actions tidak
+# memicu event "push" workflow lain -- lihat komentar di berkas itu.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/katalog.js"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: perbarui-sitemap
+  cancel-in-progress: true
+
+jobs:
+  perbarui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Buat ulang sitemap.xml
+        run: node scripts/buat-sitemap.mjs
+
+      - name: Commit kalau memang ada perubahan
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- sitemap.xml; then
+            echo "sitemap.xml tidak berubah."
+          else
+            git add sitemap.xml
+            git commit -m "Perbarui sitemap.xml"
+            git push
+          fi

@@ -73,8 +73,6 @@ const SKEMA_TAB = {
       ["jamBuka", "Jam buka", TEKS],
       ["pengiriman", "Pengiriman", TEKS],
       ["fotoLokasi", "Nama berkas foto lokasi", TEKS],
-      ["keteranganGaleri", "Keterangan galeri proses", TEKS],
-      ...kolomGaleri(),
       ["deskripsi", "Deskripsi", AREA, true],
     ],
   },
@@ -210,6 +208,25 @@ function elemen(tag, atribut = {}, ...anak) {
 
 let tabAktif = "UMKM";
 let barisDiedit = null; // null = mode tambah; angka = mode ubah (nomor baris di Sheet)
+
+// Layar "Masuk" bukan pengaman sungguhan (lihat catatan di atas berkas
+// ini) -- fungsinya cuma supaya bagian Data/Form tidak langsung
+// kelihatan dan tidak bisa dipakai sebelum kata sandi diperiksa ke
+// Apps Script (aksi "cekSandi", lihat Code.gs). Kata sandinya tetap
+// satu untuk semua pengurus, bukan akun per orang.
+function tutupKunci() {
+  $("#fieldset-data").hidden = true;
+  $("#fieldset-form").hidden = true;
+  $("#btn-masuk").hidden = false;
+  $("#btn-keluar").hidden = true;
+}
+
+function bukaKunci() {
+  $("#fieldset-data").hidden = false;
+  $("#fieldset-form").hidden = false;
+  $("#btn-masuk").hidden = true;
+  $("#btn-keluar").hidden = false;
+}
 
 function pesanStatus(teks, jenis) {
   const kotak = $("#status");
@@ -384,18 +401,60 @@ async function hapus(nomorBaris, ringkasan) {
 
 function pasang() {
   renderPengaturan();
+  tutupKunci();
   renderPilihanTab();
   renderForm();
 
-  $("#form-pengaturan").addEventListener("submit", (ev) => {
+  $("#form-pengaturan").addEventListener("submit", async (ev) => {
     ev.preventDefault();
-    simpanPengaturan({
-      url: $("#p-url").value.trim(),
-      sandi: $("#p-ingat").checked ? $("#p-sandi").value : "",
-      ingatSandi: $("#p-ingat").checked,
-    });
-    pesanStatus("Pengaturan disimpan di peramban ini.", "ok");
+    const url = $("#p-url").value.trim();
+    const sandi = $("#p-sandi").value;
+    if (!url || !sandi) {
+      pesanStatus("Isi alamat Web App dan kata sandi dulu.", "galat");
+      return;
+    }
+    pesanStatus("Memeriksa kata sandi...", "");
+    try {
+      await panggilPost({ aksi: "cekSandi" });
+      simpanPengaturan({
+        url,
+        sandi: $("#p-ingat").checked ? sandi : "",
+        ingatSandi: $("#p-ingat").checked,
+      });
+      bukaKunci();
+      muatDaftar();
+      pesanStatus("Berhasil masuk.", "ok");
+    } catch (err) {
+      pesanStatus("Gagal masuk: " + err.message, "galat");
+    }
   });
+
+  $("#btn-keluar").addEventListener("click", () => {
+    simpanPengaturan({ url: $("#p-url").value.trim(), sandi: "", ingatSandi: false });
+    $("#p-sandi").value = "";
+    $("#p-ingat").checked = false;
+    $("#daftar").innerHTML = "";
+    mulaiTambah();
+    tutupKunci();
+    pesanStatus("Sudah keluar.", "");
+  });
+
+  // Kalau kata sandi sebelumnya diminta diingat, coba langsung masuk
+  // tanpa perlu klik apa pun -- tetap lewat cekSandi ke server, bukan
+  // sekadar percaya begitu saja pada apa yang tersimpan di peramban.
+  const tersimpan = ambilPengaturan();
+  if (tersimpan.url && tersimpan.sandi) {
+    pesanStatus("Memeriksa sesi tersimpan...", "");
+    panggilPost({ aksi: "cekSandi" })
+      .then(() => {
+        bukaKunci();
+        muatDaftar();
+        pesanStatus("", "");
+      })
+      .catch((err) => {
+        pesanStatus("Sesi tersimpan tidak berlaku lagi: " + err.message, "galat");
+      });
+  }
 
   $("#pilih-tab").addEventListener("change", (ev) => {
     tabAktif = ev.target.value;

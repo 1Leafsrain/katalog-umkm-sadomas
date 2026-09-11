@@ -158,21 +158,6 @@ Ada di bagian `const TESTIMONI` dekat bagian atas berkas. Aturannya sama:
 kutipan asli dari orang sungguhan, dan minta izin dulu. Kalau belum ada, kosongkan
 `teks: ""` — bagian testimoni otomatis tidak ditampilkan dan beranda tetap rapi.
 
-## Foto proses pembuatan
-
-Tiap UMKM punya isian `galeri` berisi empat langkah kerja. Ini yang tampil di
-bagian "Proses Pembuatan" pada halaman profil UMKM:
-
-```js
-    galeri: [
-      { judul: "Fermentasi tape tiga hari", foto: "proses-1.jpg" },
-      { judul: "Membungkus adonan", foto: "proses-2.jpg" },
-    ],
-```
-
-Judul boleh diisi walau fotonya belum ada — kotak bermotif akan tampil berisi
-judul langkahnya.
-
 ## Siapa yang boleh mengubah apa
 
 Sebaiknya tiga orang memegang akses: satu dari perangkat desa dan dua dari

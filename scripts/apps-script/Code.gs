@@ -59,6 +59,9 @@ function doPost(e) {
     if (isi.sandi !== KATA_SANDI) {
       return keluaran({ galat: "Kata sandi salah." });
     }
+    // Dipakai admin.js sebagai "login" -- cuma mengecek KATA_SANDI di atas
+    // tanpa menyentuh data apa pun, jadi tidak perlu tab.
+    if (isi.aksi === "cekSandi") return keluaran({ ok: true });
     if (TAB_DIIZINKAN.indexOf(isi.tab) === -1) {
       return keluaran({ galat: "Tab '" + isi.tab + "' tidak dikenal." });
     }

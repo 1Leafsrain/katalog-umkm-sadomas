@@ -83,6 +83,96 @@ function aman(teks) {
   );
 }
 
+/* ---------- SEO: judul, deskripsi, canonical, Open Graph, data terstruktur ----------
+   umkm.html / produk.html / destinasi.html masing-masing SATU berkas dipakai
+   bergantian untuk banyak UMKM/produk/wisata lewat parameter URL (?u=, ?p=,
+   ?w=). Supaya Google (dan bagian <head> pada umumnya) tetap mendapat judul,
+   deskripsi, dan tautan kanonik yang BEDA untuk tiap isi, semuanya diatur di
+   sini lewat JavaScript setelah data yang diminta ditemukan -- bukan ditulis
+   statis di berkas HTML-nya, karena judul/isinya memang baru diketahui saat
+   itu juga.
+
+   Catatan: peninjau tautan yang TIDAK menjalankan JavaScript (mis. pratinjau
+   tautan WhatsApp/Facebook) hanya akan melihat judul & deskripsi generik yang
+   tertulis statis di HTML, bukan yang diatur di sini. Google sendiri
+   menjalankan JavaScript saat mengindeks, jadi bagian ini tetap terbaca. */
+
+function metaBernama(nama, konten) {
+  let el = document.querySelector('meta[name="' + nama + '"]');
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute("name", nama);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", konten);
+}
+
+function metaProperti(properti, konten) {
+  let el = document.querySelector('meta[property="' + properti + '"]');
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute("property", properti);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", konten);
+}
+
+function aturKanonik(href) {
+  let el = document.querySelector('link[rel="canonical"]');
+  if (!el) {
+    el = document.createElement("link");
+    el.setAttribute("rel", "canonical");
+    document.head.appendChild(el);
+  }
+  el.setAttribute("href", href);
+}
+
+/** Alamat penuh (https://...), dipakai untuk og:image/canonical -- media
+ *  sosial dan Google tidak selalu bisa menerka alamat relatif dengan benar. */
+function absolut(pathRelatif) {
+  if (!pathRelatif) return "";
+  try {
+    return new URL(pathRelatif, location.href).href;
+  } catch {
+    return "";
+  }
+}
+
+/** Potong teks panjang jadi seukuran cuplikan hasil pencarian (~155 huruf),
+ *  berhenti di batas kata supaya tidak memutus di tengah kata. */
+function ringkas(teks, maksimal) {
+  const bersih = String(teks || "").trim();
+  if (bersih.length <= maksimal) return bersih;
+  const potong = bersih.slice(0, maksimal);
+  const batasKata = potong.lastIndexOf(" ");
+  return (batasKata > 0 ? potong.slice(0, batasKata) : potong).trim() + "…";
+}
+
+/** Dipanggil dari halaman detail (UMKM/produk/wisata) setelah datanya
+ *  ditemukan, supaya <head> mencerminkan isi yang sedang dibuka. */
+function aturSeoHalaman({ judul, deskripsi, foto }) {
+  document.title = judul;
+  const kanonik = location.origin + location.pathname + location.search;
+  aturKanonik(kanonik);
+  if (deskripsi) metaBernama("description", deskripsi);
+  metaProperti("og:title", judul);
+  if (deskripsi) metaProperti("og:description", deskripsi);
+  metaProperti("og:url", kanonik);
+  metaProperti("og:type", "website");
+  if (foto) metaProperti("og:image", absolut("assets/img/" + foto));
+}
+
+/** Data terstruktur schema.org (JSON-LD) supaya Google berpeluang menampilkan
+ *  hasil pencarian yang lebih kaya (nama usaha, alamat, dsb). Nilai kosong
+ *  otomatis tidak ikut ditulis karena JSON.stringify membuang key
+ *  ber-value undefined. */
+function tambahDataTerstruktur(objek) {
+  const skrip = document.createElement("script");
+  skrip.type = "application/ld+json";
+  skrip.textContent = JSON.stringify(objek);
+  document.head.appendChild(skrip);
+}
+
 function nomorSiap(nomor) {
   return Boolean(nomor) && !String(nomor).toUpperCase().includes("GANTI");
 }
@@ -115,8 +205,15 @@ function cariUmkm(slug) {
   return UMKM.find((u) => u.slug === slug);
 }
 
+// Produk yang harganya masih "GANTI: ..." (belum dikonfirmasi ke pemilik)
+// sengaja belum ditampilkan ke publik -- baru muncul lagi begitu harganya
+// diisi di data/katalog.js. Dipakai di SEMUA tempat produk terdaftar/
+// terhitung (katalog, beranda, profil UMKM, halaman produk itu sendiri)
+// supaya jumlahnya konsisten di mana-mana.
+const PRODUK_TERBIT = PRODUK.filter((p) => !perluDiisi(p.harga));
+
 function produkMilik(slug) {
-  return PRODUK.filter((p) => p.umkm === slug);
+  return PRODUK_TERBIT.filter((p) => p.umkm === slug);
 }
 
 /** Kotak gambar. Bila foto kosong, tampil motif anyaman + keterangan. */
@@ -320,6 +417,13 @@ function pasangKerangka() {
   document.body.insertAdjacentHTML("afterbegin", susunKepala());
   document.body.insertAdjacentHTML("beforeend", susunKaki());
 
+  // Alamat kanonik dasar (tanpa parameter pencarian/kategori) supaya
+  // Google tidak menganggap katalog.html?k=kuliner sebagai halaman
+  // terpisah dari katalog.html biasa. Halaman detail (UMKM/produk/
+  // wisata) menimpanya lagi lewat aturSeoHalaman() supaya ikut
+  // menyertakan parameter ?u=/?p=/?w= yang justru menjadi isinya.
+  aturKanonik(location.origin + location.pathname);
+
   const tombol = $(".tombol-menu");
   const menu = $(".menu");
   if (tombol && menu) {
@@ -475,7 +579,7 @@ function halamanBeranda() {
 
   const angka = [
     ["toko", UMKM.length, "UMKM Terdaftar", "Dihitung dari katalog"],
-    ["kotak", PRODUK.length, "Produk Tercatat", "Dihitung dari katalog"],
+    ["kotak", PRODUK_TERBIT.length, "Produk Tercatat", "Dihitung dari katalog"],
     ["orang", DESA.jiwa, "Jumlah Penduduk", DESA.catatanAngka],
     [
       "peta",
@@ -500,7 +604,7 @@ function halamanBeranda() {
 
   const kategori = KATEGORI.map((k) => {
     const gaya = IKON_KATEGORI[k.id] || IKON_KATEGORI.kerajinan;
-    const jumlah = PRODUK.filter((p) => p.kategori === k.id).length;
+    const jumlah = PRODUK_TERBIT.filter((p) => p.kategori === k.id).length;
     return (
       '<a class="kategori__kartu" href="katalog.html?k=' +
       encodeURIComponent(k.id) +
@@ -518,8 +622,8 @@ function halamanBeranda() {
     );
   }).join("");
 
-  const unggulan = PRODUK.filter((p) => p.unggulan);
-  const produkTampil = (unggulan.length ? unggulan : PRODUK).slice(0, 4);
+  const unggulan = PRODUK_TERBIT.filter((p) => p.unggulan);
+  const produkTampil = (unggulan.length ? unggulan : PRODUK_TERBIT).slice(0, 4);
 
   isi.innerHTML =
     /* Hero */
@@ -685,7 +789,7 @@ function halamanKatalog() {
 
   function gambarUlang() {
     const kata = kataCari.trim().toLowerCase();
-    const hasil = PRODUK.filter((p) => {
+    const hasil = PRODUK_TERBIT.filter((p) => {
       const u = cariUmkm(p.umkm);
       const cocokKategori =
         kategoriAktif === "semua" || p.kategori === kategoriAktif;
@@ -698,7 +802,7 @@ function halamanKatalog() {
     });
 
     kotakJumlah.textContent =
-      "Menampilkan " + hasil.length + " dari " + PRODUK.length + " produk";
+      "Menampilkan " + hasil.length + " dari " + PRODUK_TERBIT.length + " produk";
     kotakHasil.innerHTML = hasil.length
       ? hasil.map((p) => kartuProduk(p, true)).join("")
       : '<p class="kosong">Tidak ada produk yang cocok. Coba kata lain atau pilih kategori Semua.</p>';
@@ -764,7 +868,20 @@ function halamanDestinasi() {
     return;
   }
 
-  document.title = w.nama + " — Wisata Desa " + DESA.nama;
+  aturSeoHalaman({
+    judul: w.nama + " — Wisata Desa " + DESA.nama,
+    deskripsi: ringkas(w.deskripsi, 155),
+    foto: w.foto,
+  });
+  tambahDataTerstruktur({
+    "@context": "https://schema.org",
+    "@type": "TouristAttraction",
+    name: w.nama,
+    description: w.deskripsi || undefined,
+    address: w.alamat || undefined,
+    image: w.foto ? absolut("assets/img/" + w.foto) : undefined,
+    url: location.origin + location.pathname + location.search,
+  });
 
   const pesan =
     "Halo, saya ingin bertanya tentang " +
@@ -881,7 +998,21 @@ function halamanUmkm() {
     return;
   }
 
-  document.title = u.nama + " — UMKM Desa " + DESA.nama;
+  aturSeoHalaman({
+    judul: u.nama + " — UMKM Desa " + DESA.nama,
+    deskripsi: ringkas(u.deskripsi, 155),
+    foto: u.foto,
+  });
+  tambahDataTerstruktur({
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: u.nama,
+    description: u.deskripsi || undefined,
+    address: u.alamat || undefined,
+    telephone: nomorSiap(u.wa) ? "+" + String(u.wa).replace(/\D/g, "") : undefined,
+    image: u.foto ? absolut("assets/img/" + u.foto) : undefined,
+    url: location.origin + location.pathname + location.search,
+  });
   const daftar = produkMilik(u.slug);
 
   const pesan =
@@ -899,20 +1030,6 @@ function halamanUmkm() {
       IKON.wa +
       "Hubungi via WhatsApp</a>"
     : '<span class="tombol tombol--mati tombol--penuh">Nomor WhatsApp belum diisi</span>';
-
-  const galeri = (u.galeri || []).length
-    ? '<section class="blok"><div class="blok__isi pad-20-10">' +
-      '<div class="kepala-bagian"><div class="kepala-bagian__kiri">' +
-      '<h2 class="judul-24">Proses Pembuatan</h2>' +
-      "<p>" +
-      aman(u.keteranganGaleri || "") +
-      "</p></div></div>" +
-      '<div class="galeri">' +
-      u.galeri
-        .map((g) => gambar(g.foto, g.judul, "", g.judul || "Foto proses"))
-        .join("") +
-      "</div></div></section>"
-    : "";
 
   const kontakBaris = [
     ["jam", "Jam Buka", u.jamBuka],
@@ -974,7 +1091,6 @@ function halamanUmkm() {
     daftar.length +
     " produk</dd></div>" +
     "</dl></div></div></section>" +
-    galeri +
     /* Katalog produk UMKM */
     '<section class="blok"><div class="blok__isi pad-60">' +
     '<div class="kepala-bagian"><div class="kepala-bagian__kiri">' +
@@ -1016,7 +1132,7 @@ function halamanUmkm() {
 
 function halamanProduk() {
   const isi = $("#isi");
-  const p = PRODUK.find(
+  const p = PRODUK_TERBIT.find(
     (x) => x.slug === new URLSearchParams(location.search).get("p"),
   );
 
@@ -1029,7 +1145,23 @@ function halamanProduk() {
   }
 
   const u = cariUmkm(p.umkm) || {};
-  document.title = p.nama + " — UMKM Desa " + DESA.nama;
+  aturSeoHalaman({
+    judul: p.nama + " — UMKM Desa " + DESA.nama,
+    deskripsi: ringkas(p.deskripsi, 155),
+    foto: p.foto,
+  });
+  // Tanpa "offers"/harga: kolom harga di sini sengaja berupa kisaran
+  // ("Rp15.000 - Rp18.000"), bukan angka tetap -- memaksakannya ke
+  // format price schema.org malah bisa keliru dan ditolak Google.
+  tambahDataTerstruktur({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.nama,
+    description: p.deskripsi || undefined,
+    image: p.foto ? absolut("assets/img/" + p.foto) : undefined,
+    brand: u.nama ? { "@type": "Brand", name: u.nama } : undefined,
+    url: location.origin + location.pathname + location.search,
+  });
 
   const pesan =
     sapaan(u.pemilik) +
@@ -1143,9 +1275,6 @@ function halamanProduk() {
     ' <span class="rinci__satuan">' +
     aman(p.satuan) +
     "</span></div>" +
-    (perluDiisi(p.harga)
-      ? '<p class="peringatan">Harga produk ini belum diisi pengelola. Tanyakan langsung ke pemilik.</p>'
-      : "") +
     "</div>" +
     '<div class="blok-teks"><h2>Deskripsi Produk</h2><p>' +
     aman(p.deskripsi) +
@@ -1236,3 +1365,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (halaman === "wisata") halamanWisata();
   if (halaman === "destinasi") halamanDestinasi();
 });
+
+/* Daftarkan service worker (mode PWA / bisa dibuka offline). Alamatnya
+   RELATIF ("sw.js", bukan "/sw.js") karena situs ini dilayani dari
+   dalam subfolder di GitHub Pages -- alamat berawalan garis miring
+   akan meleset ke akar domain, bukan ke folder situs ini. */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {
+      /* Tidak fatal -- situs tetap jalan normal tanpa mode offline. */
+    });
+  });
+}

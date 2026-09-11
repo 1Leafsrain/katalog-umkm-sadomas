@@ -140,8 +140,13 @@
       <code>PANDUAN-ADMIN.md</code>.
     </p>
 
-    <fieldset>
-      <legend>Pengaturan</legend>
+    <fieldset id="fieldset-masuk">
+      <legend id="masuk-judul">Masuk</legend>
+      <p class="catatan" id="masuk-keterangan">
+        Isi alamat Web App dan kata sandi admin untuk masuk. Satu kata sandi
+        dipakai bersama oleh semua pengurus -- lihat <code>PANDUAN-ADMIN.md</code>
+        kalau belum pernah diisi sebelumnya.
+      </p>
       <form id="form-pengaturan">
         <div class="f-baris">
           <label for="p-url">Alamat Web App</label>
@@ -154,19 +159,22 @@
         </div>
         <div class="f-baris">
           <label for="p-sandi">Kata sandi admin</label>
-          <input id="p-sandi" type="password" autocomplete="off" />
+          <input id="p-sandi" type="password" autocomplete="off" required />
         </div>
         <div class="baris-inline">
           <input id="p-ingat" type="checkbox" />
           <label for="p-ingat">Ingat kata sandi di peramban ini</label>
         </div>
         <div class="form-baris-tombol">
-          <button type="submit">Simpan Pengaturan</button>
+          <button type="submit" id="btn-masuk">Masuk</button>
+          <button type="button" class="sekunder" id="btn-keluar" hidden>
+            Keluar
+          </button>
         </div>
       </form>
     </fieldset>
 
-    <fieldset>
+    <fieldset id="fieldset-data" hidden>
       <legend>Data</legend>
       <div class="f-baris">
         <label for="pilih-tab">Jenis data</label>
@@ -183,7 +191,7 @@
 
     <div id="status" class="status" role="status"></div>
 
-    <fieldset>
+    <fieldset id="fieldset-form" hidden>
       <legend id="form-judul">Tambah data baru</legend>
       <form id="form-data">
         <div id="form-field"></div>
