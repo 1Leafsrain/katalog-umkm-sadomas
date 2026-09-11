@@ -30,12 +30,20 @@ function url(loc) {
   return "  <url><loc>" + BASE_URL + loc + "</loc></url>";
 }
 
+// Produk yang harganya masih "GANTI: ..." sengaja belum ditampilkan ke
+// publik (lihat PRODUK_TERBIT di assets/app.js) -- jangan sampai Google
+// diarahkan ke halaman yang menampilkan "produk tidak ditemukan".
+function sudahAdaHarga(p) {
+  return Boolean(p.harga) && !String(p.harga).toUpperCase().startsWith("GANTI");
+}
+const produkTerbit = PRODUK.filter(sudahAdaHarga);
+
 const baris = [
   url("/index.html"),
   url("/katalog.html"),
   url("/wisata.html"),
   ...UMKM.map((u) => url("/umkm.html?u=" + encodeURIComponent(u.slug))),
-  ...PRODUK.map((p) => url("/produk.html?p=" + encodeURIComponent(p.slug))),
+  ...produkTerbit.map((p) => url("/produk.html?p=" + encodeURIComponent(p.slug))),
   ...WISATA.map((w) => url("/destinasi.html?w=" + encodeURIComponent(w.slug))),
 ];
 
@@ -48,6 +56,8 @@ const isi =
 await writeFile(new URL("../sitemap.xml", import.meta.url), isi, "utf8");
 console.log(
   "sitemap.xml ditulis: " +
-    (3 + UMKM.length + PRODUK.length + WISATA.length) +
-    " alamat.",
+    (3 + UMKM.length + produkTerbit.length + WISATA.length) +
+    " alamat (" +
+    (PRODUK.length - produkTerbit.length) +
+    " produk belum ada harga, dilewati).",
 );

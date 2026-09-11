@@ -205,8 +205,15 @@ function cariUmkm(slug) {
   return UMKM.find((u) => u.slug === slug);
 }
 
+// Produk yang harganya masih "GANTI: ..." (belum dikonfirmasi ke pemilik)
+// sengaja belum ditampilkan ke publik -- baru muncul lagi begitu harganya
+// diisi di data/katalog.js. Dipakai di SEMUA tempat produk terdaftar/
+// terhitung (katalog, beranda, profil UMKM, halaman produk itu sendiri)
+// supaya jumlahnya konsisten di mana-mana.
+const PRODUK_TERBIT = PRODUK.filter((p) => !perluDiisi(p.harga));
+
 function produkMilik(slug) {
-  return PRODUK.filter((p) => p.umkm === slug);
+  return PRODUK_TERBIT.filter((p) => p.umkm === slug);
 }
 
 /** Kotak gambar. Bila foto kosong, tampil motif anyaman + keterangan. */
@@ -572,7 +579,7 @@ function halamanBeranda() {
 
   const angka = [
     ["toko", UMKM.length, "UMKM Terdaftar", "Dihitung dari katalog"],
-    ["kotak", PRODUK.length, "Produk Tercatat", "Dihitung dari katalog"],
+    ["kotak", PRODUK_TERBIT.length, "Produk Tercatat", "Dihitung dari katalog"],
     ["orang", DESA.jiwa, "Jumlah Penduduk", DESA.catatanAngka],
     [
       "peta",
@@ -597,7 +604,7 @@ function halamanBeranda() {
 
   const kategori = KATEGORI.map((k) => {
     const gaya = IKON_KATEGORI[k.id] || IKON_KATEGORI.kerajinan;
-    const jumlah = PRODUK.filter((p) => p.kategori === k.id).length;
+    const jumlah = PRODUK_TERBIT.filter((p) => p.kategori === k.id).length;
     return (
       '<a class="kategori__kartu" href="katalog.html?k=' +
       encodeURIComponent(k.id) +
@@ -615,8 +622,8 @@ function halamanBeranda() {
     );
   }).join("");
 
-  const unggulan = PRODUK.filter((p) => p.unggulan);
-  const produkTampil = (unggulan.length ? unggulan : PRODUK).slice(0, 4);
+  const unggulan = PRODUK_TERBIT.filter((p) => p.unggulan);
+  const produkTampil = (unggulan.length ? unggulan : PRODUK_TERBIT).slice(0, 4);
 
   isi.innerHTML =
     /* Hero */
@@ -782,7 +789,7 @@ function halamanKatalog() {
 
   function gambarUlang() {
     const kata = kataCari.trim().toLowerCase();
-    const hasil = PRODUK.filter((p) => {
+    const hasil = PRODUK_TERBIT.filter((p) => {
       const u = cariUmkm(p.umkm);
       const cocokKategori =
         kategoriAktif === "semua" || p.kategori === kategoriAktif;
@@ -795,7 +802,7 @@ function halamanKatalog() {
     });
 
     kotakJumlah.textContent =
-      "Menampilkan " + hasil.length + " dari " + PRODUK.length + " produk";
+      "Menampilkan " + hasil.length + " dari " + PRODUK_TERBIT.length + " produk";
     kotakHasil.innerHTML = hasil.length
       ? hasil.map((p) => kartuProduk(p, true)).join("")
       : '<p class="kosong">Tidak ada produk yang cocok. Coba kata lain atau pilih kategori Semua.</p>';
@@ -1125,7 +1132,7 @@ function halamanUmkm() {
 
 function halamanProduk() {
   const isi = $("#isi");
-  const p = PRODUK.find(
+  const p = PRODUK_TERBIT.find(
     (x) => x.slug === new URLSearchParams(location.search).get("p"),
   );
 
@@ -1268,9 +1275,6 @@ function halamanProduk() {
     ' <span class="rinci__satuan">' +
     aman(p.satuan) +
     "</span></div>" +
-    (perluDiisi(p.harga)
-      ? '<p class="peringatan">Harga produk ini belum diisi pengelola. Tanyakan langsung ke pemilik.</p>'
-      : "") +
     "</div>" +
     '<div class="blok-teks"><h2>Deskripsi Produk</h2><p>' +
     aman(p.deskripsi) +
@@ -1361,3 +1365,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (halaman === "wisata") halamanWisata();
   if (halaman === "destinasi") halamanDestinasi();
 });
+
+/* Daftarkan service worker (mode PWA / bisa dibuka offline). Alamatnya
+   RELATIF ("sw.js", bukan "/sw.js") karena situs ini dilayani dari
+   dalam subfolder di GitHub Pages -- alamat berawalan garis miring
+   akan meleset ke akar domain, bukan ke folder situs ini. */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {
+      /* Tidak fatal -- situs tetap jalan normal tanpa mode offline. */
+    });
+  });
+}

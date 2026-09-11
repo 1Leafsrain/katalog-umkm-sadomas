@@ -73,12 +73,15 @@ deploy dan pastikan "Who has access" memang **Anyone**.
 ## 3. Pakai halaman admin
 
 1. Buka `admin.html` di situs (misalnya
-   `https://<akun>.github.io/katalog-umkm-sadomas/admin.html`).
-2. Di bagian **Pengaturan**: tempel Web app URL dari langkah sebelumnya, isi
-   kata sandi yang tadi diisi di `KATA_SANDI`. Centang "Ingat kata sandi di
-   peramban ini" kalau memakai perangkat pribadi yang tidak dipakai orang
-   lain (jangan dicentang di komputer/HP bersama).
-3. Klik **Simpan Pengaturan**.
+   `https://<akun>.github.io/katalog-umkm-sadomas/admin.html`). Yang tampil
+   pertama kali adalah layar **Masuk**.
+2. Tempel Web app URL dari langkah sebelumnya, isi kata sandi yang tadi
+   diisi di `KATA_SANDI`. Centang "Ingat kata sandi di peramban ini" kalau
+   memakai perangkat pribadi yang tidak dipakai orang lain (jangan
+   dicentang di komputer/HP bersama).
+3. Klik **Masuk**. Kalau kata sandinya cocok, bagian Data dan form
+   tambah/ubah baru muncul. Kalau salah, tetap di layar Masuk dengan pesan
+   "Kata sandi salah."
 4. Pilih **Jenis data** (UMKM / Produk / Wisata / Ulasan), klik
    **Muat Daftar** untuk melihat data yang sudah ada.
 5. **Tambah data baru**: klik **+ Tambah Baru**, isi form, klik **Simpan**.
@@ -100,13 +103,23 @@ Sheet seperti dijelaskan di `PANDUAN-SHEET.md`.
 
 `admin.html` **bisa dibuka siapa saja yang tahu alamatnya** -- GitHub Pages
 tidak punya sistem login. Halaman ini sengaja tidak ditautkan di menu situs
-supaya tidak gampang ditemukan, tapi itu bukan pengaman sungguhan.
+supaya tidak gampang ditemukan, tapi itu bukan pengaman sungguhan. Layar
+**Masuk** di depannya juga bukan login sungguhan (tidak ada akun per orang)
+-- tetap satu kata sandi yang sama dipakai bersama semua pengurus.
 
 Yang **benar-benar** mencegah orang asing menulis data adalah pengecekan
 kata sandi di `Code.gs` (dijalankan di server Google, bukan di halaman ini).
-Tanpa kata sandi yang benar, permintaan tambah/ubah/hapus akan ditolak.
-Membaca data (tombol Muat Daftar) tidak perlu kata sandi -- datanya sama
-dengan yang sudah publik di halaman katalog.
+Layar Masuk memeriksa kata sandi ke server itu juga (aksi `cekSandi`)
+sebelum menampilkan bagian Data/Form -- jadi kalau kata sandinya sudah
+diganti (lihat bagian "kalau bocor" di bawah), sesi yang kebetulan masih
+tersimpan di peramban lama otomatis ditolak lagi, tidak diam-diam tetap
+terbuka. Tanpa kata sandi yang benar, permintaan tambah/ubah/hapus akan
+ditolak. Membaca data (tombol Muat Daftar) tidak perlu kata sandi -- datanya
+sama dengan yang sudah publik di halaman katalog.
+
+Tombol **Keluar** (muncul setelah berhasil masuk) mengunci lagi halamannya
+dan menghapus kata sandi yang sempat diingat di peramban itu -- pakai ini
+kalau memakai HP/komputer bersama.
 
 Karena itu:
 
@@ -132,9 +145,14 @@ lagi supaya daftarnya segar, lalu ulangi.
 
 ## Kalau ada galat
 
-- **"Alamat Web App belum diisi"** -- isi dulu di bagian Pengaturan.
+- **"Isi alamat Web App dan kata sandi dulu"** -- kedua kolom di layar Masuk
+  wajib diisi sebelum klik **Masuk**.
 - **"Kata sandi salah"** -- cocokkan lagi dengan `KATA_SANDI` di `Code.gs`,
   ingat huruf besar/kecil ikut diperhatikan.
+- **"Sesi tersimpan tidak berlaku lagi"** -- muncul otomatis saat membuka
+  halaman kalau kata sandi yang diingat di peramban sudah tidak cocok lagi
+  (biasanya karena `KATA_SANDI` baru saja diganti). Masuk ulang dengan kata
+  sandi yang baru.
 - **"Tab '...' tidak dikenal"** -- nama tab di Sheet berubah/typo. Nama tab
   harus persis `UMKM`, `PRODUK`, `WISATA`, `ULASAN`.
 - Error CORS di console peramban (`blocked by CORS policy`) -- coba deploy

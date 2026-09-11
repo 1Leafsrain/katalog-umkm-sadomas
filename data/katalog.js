@@ -33,8 +33,8 @@ const DESA = {
   facebook: "",
 
   // Foto besar. Kosongkan bila belum ada; kotak bermotif akan tampil.
-  fotoHero: "",   // contoh: "desa.jpg"  (simpan di assets/img/)
-  fotoProfil: "", // contoh: "profil.jpg"
+  fotoHero: "",   // contoh: "desa.jpg"  (simpan di assets/img/) -- belum ada foto suasana desa, biarkan kosong dulu
+  fotoProfil: "balai-desa-sadomas.jpg", // dari blog lama desakusadomas.wordpress.com, belum ada keterangan lisensi eksplisit
 
   // Bagian "Tentang Desa" di beranda
   judulProfil: "Desa bertani di kaki Gunung Ciremai",
@@ -207,19 +207,20 @@ const UMKM = [
     slug: "kerupuk-kulit-sapi-sadomas",
     nama: "Kerupuk Kulit Sapi Sadomas",
     kategori: "kuliner",
-    pemilik: "GANTI: nama pemilik",
+    pemilik: "Rena Reno Ratu",
     berdiri: "GANTI: tahun berdiri",
     pekerja: "GANTI: jumlah pekerja",
     wa: "GANTI_NOMOR_WA",
     alamat: "GANTI: blok / RT / RW",
-    foto: "",
+    foto: "kerupuk-kulit-2.jpg",
     penilaian: 0,
     jamBuka: "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     pengiriman: "GANTI: contoh Ambil di tempat, kirim dalam kota",
     fotoLokasi: "",
     deskripsi:
       "Kerupuk dari kulit sapi pilihan, direbus lalu dijemur sebelum digoreng " +
-      "renyah. Diproduksi rumahan, dijual mentah maupun siap makan.",
+      "renyah. Diproduksi rumahan dengan merek 'RR Ratu', bersertifikat " +
+      "Halal dan terdaftar P-IRT. Dijual mentah maupun siap makan.",
   },
   {
     slug: "kebun-sayuran-sadomas",
@@ -297,11 +298,11 @@ const UMKM = [
     pemilik: "GANTI: nama pemilik",
     berdiri: "GANTI: tahun berdiri",
     pekerja: "GANTI: jumlah pekerja",
-    wa: "6281213777701",
+    wa: "6282320027464",
     alamat: "GANTI: blok / RT / RW",
     foto: "bakso-andin-1.jpg",
     penilaian: 0,
-    jamBuka: "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
+    jamBuka: "Setiap hari, 08.00-20.00 WIB",
     pengiriman: "GANTI: contoh Makan di tempat, bisa dibungkus",
     fotoLokasi: "",
     deskripsi:
@@ -688,19 +689,21 @@ const PRODUK = [
     nama: "Kerupuk Kulit Sapi Siap Makan",
     umkm: "kerupuk-kulit-sapi-sadomas",
     kategori: "kuliner",
-    harga: "GANTI: kisaran harga",
-    satuan: "per bungkus",
-    foto: "",
+    harga: "Rp2.000",
+    satuan: "per bungkus kecil",
+    foto: "kerupuk-kulit-1.jpg",
     penilaian: 0,
-    galeri: [],
+    galeri: ["kerupuk-kulit-3.jpg"],
     ulasan: [],
     unggulan: false,
     deskripsi:
-      "Sudah digoreng renyah dan dikemas rapat, tinggal buka dan santap.",
+      "Sudah digoreng renyah dan dikemas rapat, tinggal buka dan santap. " +
+      "Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT " +
+      "2013210010707-28.",
     rincian: [
       ["Bahan utama", "Kulit sapi pilihan"],
-      ["Berat", "GANTI: berat per bungkus"],
-      ["Daya tahan", "GANTI: berapa lama"],
+      ["Merek", "RR Ratu"],
+      ["Sertifikat", "Halal Indonesia, P-IRT 2013210010707-28"],
       ["Minimal pesan", "1 bungkus"],
     ],
   },
