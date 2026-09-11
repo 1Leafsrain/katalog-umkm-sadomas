@@ -20,7 +20,7 @@
    peramban tahu perlu mengunduh ulang.
    ============================================================ */
 
-const CACHE_VERSI = "sadomas-v1";
+const CACHE_VERSI = "sadomas-v2";
 
 const BERKAS_INTI = [
   "index.html",
