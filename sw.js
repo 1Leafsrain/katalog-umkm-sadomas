@@ -20,7 +20,7 @@
    peramban tahu perlu mengunduh ulang.
    ============================================================ */
 
-const CACHE_VERSI = "sadomas-v2";
+const CACHE_VERSI = "sadomas-v3";
 
 const BERKAS_INTI = [
   "index.html",
@@ -37,6 +37,8 @@ const BERKAS_INTI = [
   "manifest.json",
   "assets/icons/icon-192.png",
   "assets/icons/icon-512.png",
+  "assets/icons/icon-maskable-192.png",
+  "assets/icons/icon-maskable-512.png",
 ];
 
 self.addEventListener("install", (e) => {
