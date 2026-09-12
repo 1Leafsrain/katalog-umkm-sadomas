@@ -6,10 +6,14 @@ terjadwal (dan bisa dipicu manual), menarik isi Sheet, mengubahnya jadi
 `data/katalog.js`, lalu commit sendiri kalau memang ada perubahan.
 GitHub Pages menerbitkan ulang seperti biasa setelah commit itu masuk.
 
-**Situsnya tetap 100% statis.** Pengunjung situs tidak pernah menghubungi
-Google sama sekali -- yang bicara ke Google Sheet hanya robot GitHub
-Actions, sekali per jadwal, bukan setiap kali ada yang membuka halaman.
-Kecepatan situs untuk pengunjung sama persis seperti sekarang.
+**Situsnya tetap (hampir) 100% statis.** Untuk isi katalog (UMKM, produk,
+wisata, dst.), pengunjung situs tidak pernah menghubungi Google sama
+sekali -- yang bicara ke Google Sheet hanya robot GitHub Actions, sekali
+per jadwal, bukan setiap kali ada yang membuka halaman. Kecepatan situs
+untuk pengunjung sama persis seperti sekarang. Satu-satunya pengecualian
+adalah fitur statistik kunjungan/klik-WA dan ulasan pembeli langsung
+(tab `STATISTIK`/`AKSES_UMKM`/`PROMO` -- lihat bagian di bawah), yang
+memang butuh situs publik memanggil Apps Script langsung.
 
 Ini **pilihan tambahan**, bukan keharusan. Kalau lebih nyaman mengedit
 `data/katalog.js` langsung di GitHub seperti sebelumnya, ikuti
@@ -47,9 +51,17 @@ GitHub Pages menerbitkan ulang otomatis
 ## 1. Siapkan Google Sheet-nya
 
 1. Buat Google Sheet baru, **pakai akun desa**, bukan akun pribadi.
-2. Buat **7 tab**, namanya harus PERSIS seperti ini (huruf besar/kecil ikut
-   diperhatikan): `DESA`, `TESTIMONI`, `KATEGORI`, `UMKM`, `PRODUK`,
-   `ULASAN`, `WISATA`.
+2. Buat **8 tab** untuk sinkron katalog, namanya harus PERSIS seperti ini
+   (huruf besar/kecil ikut diperhatikan): `DESA`, `TESTIMONI`, `KATEGORI`,
+   `UMKM`, `PRODUK`, `ULASAN`, `WISATA`, `PROMO`.
+
+   Kalau juga mau memakai `admin.html`/`toko-saya.html` (form admin,
+   statistik, kode akses toko -- lihat `PANDUAN-ADMIN.md`), buat **2 tab
+   tambahan**: `AKSES_UMKM`, `STATISTIK`. Dua tab ini TIDAK ikut ditarik
+   GitHub Actions (tidak masuk `data/katalog.js`), jadi tidak perlu diisi
+   lewat `katalog-ke-sheet.mjs` di langkah berikut -- cukup buat tabnya
+   dengan baris judul kolom yang benar (lihat bagian kolom masing-masing
+   tab di bawah), isinya nanti diisi lewat `admin.html`/`toko-saya.html`.
 3. Supaya tidak mengetik ulang data yang sudah ada, jalankan sekali di
    komputer (perlu Node.js terpasang):
 
@@ -57,10 +69,14 @@ GitHub Pages menerbitkan ulang otomatis
    node scripts/katalog-ke-sheet.mjs
    ```
 
-   Ini membuat folder `sheet-seed/` berisi 7 berkas CSV, isinya data yang
-   sekarang sudah ada di `data/katalog.js`. Untuk tiap tab yang tadi dibuat:
-   buka tabnya -> **File > Import > Upload** -> pilih CSV yang namanya sama
-   dengan tab itu -> pilih **Replace current sheet** -> Import data.
+   Ini membuat folder `sheet-seed/` berisi CSV untuk semua tab (termasuk
+   `PROMO.csv` dan `AKSES_UMKM.csv` -- dua yang terakhir ini isinya cuma
+   baris judul kolom, kosong, karena datanya memang belum ada). Untuk
+   tiap tab yang tadi dibuat: buka tabnya -> **File > Import > Upload**
+   -> pilih CSV yang namanya sama dengan tab itu -> pilih **Replace
+   current sheet** -> Import data. (Tab `STATISTIK` tidak punya CSV --
+   biarkan kosong, cukup ketik baris judul `waktu`, `slug`, `jenis` di
+   baris pertama secara manual.)
 4. Buka **Share** (kanan atas) -> **General access** -> ubah jadi
    **Anyone with the link**, peran **Viewer**. Tanpa ini, GitHub Actions
    tidak bisa membaca Sheet-nya.
@@ -142,9 +158,39 @@ untuk rincian: `rincian1_label`, `rincian1_isi`, ... sampai `rincian6`.
 ### Tab `ULASAN`
 
 `produk` (slug produk yang diulas), `nama`, `asal`, `penilaian` (1-5),
-`teks`. Satu baris satu ulasan. **Isi hanya ulasan sungguhan yang sudah
-diizinkan pembelinya** -- sama seperti aturan lama, ulasan karangan
-gampang ketahuan dan merugikan nama desa.
+`teks`. Satu baris satu ulasan. Bisa diisi manual oleh admin (**isi
+hanya ulasan sungguhan yang sudah diizinkan pembelinya** -- ulasan
+karangan gampang ketahuan dan merugikan nama desa), TAPI sejak ada
+formulir ulasan di `produk.html`, baris juga bisa masuk otomatis lewat
+kiriman pembeli langsung -- tayang tanpa moderasi dulu. Cek tab ini
+sesekali, hapus lewat CRUD di `admin.html` kalau ada yang tidak pantas.
+
+### Tab `PROMO`
+
+`slug` (slug UMKM), `teks` (isi promo), `aktif` (`TRUE`/`FALSE` --
+tampil di halaman toko atau tidak). Satu baris per UMKM. Diisi pemilik
+toko sendiri lewat `toko-saya.html` (kode akses, lihat tab
+`AKSES_UMKM`), TAPI admin juga bisa lihat/ubah/hapus lewat CRUD di
+`admin.html` sebagai pengawasan.
+
+### Tab `AKSES_UMKM` (RAHASIA -- jangan sampai bocor)
+
+`slug`, `kode`. Kode akses tiap toko untuk masuk ke `toko-saya.html`
+(lihat statistik & atur promo sendiri) -- BUKAN kata sandi admin. Admin
+membuat baris baru di sini lewat CRUD di `admin.html` (tab "Kode akses
+toko"), lalu mengabari pemilik usahanya lewat WhatsApp. Berbeda dari
+tab lain, isi tab ini TIDAK ikut tersinkron ke `data/katalog.js` dan
+TIDAK bisa dibaca tanpa kata sandi admin -- supaya kode tiap toko tetap
+privat.
+
+### Tab `STATISTIK` (jangan diedit manual)
+
+`waktu`, `slug`, `jenis` (`kunjungan` atau `klik_wa`). Log mentah,
+satu baris per kunjungan/klik -- ditulis otomatis oleh situs publik
+(lewat `catatStatistik` di `assets/app.js`), bukan oleh admin. Dibaca
+lewat bagian Statistik di `admin.html` atau `toko-saya.html`, TIDAK
+ikut tersinkron ke `data/katalog.js`. Tidak perlu (dan sebaiknya tidak)
+diisi/diedit manual.
 
 ### Tab `WISATA`
 

@@ -110,6 +110,7 @@ const UMKM = [
       "Gabin tape khas Sadomas: tape singkong dibalut biskuit gabin lalu digoreng " +
       "tipis sampai renyah. Diproduksi harian di dapur rumah, dijual dalam kemasan " +
       "kotak untuk oleh-oleh maupun eceran.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "opak-merah-sadomas",
@@ -126,6 +127,7 @@ const UMKM = [
     deskripsi:
       "Opak beras ketan yang dijemur di halaman rumah dan dibakar di atas bara. " +
       "Warna merahnya dari bumbu, bukan pewarna. Dijual mentah maupun siap makan.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "keripik-melinjo",
@@ -142,6 +144,7 @@ const UMKM = [
     deskripsi:
       "Emping melinjo tipis dari buah melinjo kebun sendiri. Tersedia mentah untuk " +
       "digoreng di rumah dan matang siap santap dengan pilihan rasa asin atau pedas.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "bibit-palawija",
@@ -158,6 +161,7 @@ const UMKM = [
     deskripsi:
       "Pembibitan palawija milik warga: jagung, kacang tanah, dan sayuran dataran " +
       "menengah. Melayani pembelian per tray untuk petani maupun pekarangan rumah.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "buah-musiman-sadomas",
@@ -174,6 +178,7 @@ const UMKM = [
     deskripsi:
       "Mangga, durian, dan picung hasil kebun warga. Karena mengikuti musim, " +
       "ketersediaan berubah tiap bulan. Tanyakan dulu lewat WhatsApp sebelum memesan.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "donat-dan-brownies",
@@ -190,6 +195,7 @@ const UMKM = [
     deskripsi:
       "Donat empuk dan brownies kukus buatan rumahan, dibuat segar setiap hari. " +
       "Cocok untuk oleh-oleh maupun camilan keluarga.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "kerupuk-kulit-sapi-sadomas",
@@ -207,6 +213,7 @@ const UMKM = [
       "Kerupuk dari kulit sapi pilihan, direbus lalu dijemur sebelum digoreng " +
       "renyah. Diproduksi rumahan dengan merek 'RR Ratu', bersertifikat " +
       "Halal dan terdaftar P-IRT. Dijual mentah maupun siap makan.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "kebun-sayuran-sadomas",
@@ -223,6 +230,7 @@ const UMKM = [
     deskripsi:
       "Sayuran segar hasil kebun warga: kol, sawi, cabai, dan tomat, dipanen " +
       "dari lahan dataran menengah di kaki Gunung Ciremai sesuai pesanan.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "jajanan-pasar-bu-yeti",
@@ -253,6 +261,7 @@ const UMKM = [
       "berjualan mochi, lalu beralih karena tepung ketan sering sulit " +
       "didapat -- onde-onde karena itu tidak selalu dibuat setiap hari. " +
       "Di bagian belakang rumah, Bu Yeti juga berjualan sayuran.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "abu-meubel",
@@ -270,6 +279,7 @@ const UMKM = [
       "Usaha mebel dan kayu custom: bufet/backdrop TV, kitchen set, " +
       "lemari, meja-kursi, sampai pintu kayu jati -- dikerjakan sesuai " +
       "pesanan dan ukuran ruangan pemesan.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "mie-ayam-bakso-neng-andin",
@@ -287,6 +297,7 @@ const UMKM = [
       "Warung mie ayam dan bakso: bakso biasa, bakso super, mie ayam, " +
       "dan mie yamso (mie yamin bakso) dalam tiga ukuran, lengkap dengan " +
       "aneka minuman.",
+    promo: { teks: "", aktif: false },
   },
   {
     slug: "es-teh-ningrat",
@@ -304,6 +315,7 @@ const UMKM = [
       "Minuman es teh kekinian dengan berbagai rasa buah, ditambah " +
       "pilihan milkshake seperti matcha, taro ube, thai tea, avocado, " +
       "dan royal chocolate.",
+    promo: { teks: "", aktif: false },
   },
 ];
 

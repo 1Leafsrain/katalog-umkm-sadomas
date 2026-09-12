@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Toko Saya — UMKM Desa Sadomas</title>
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href="assets/style.css" />
+    <style>
+      /* Halaman ini berdiri sendiri, sama seperti admin.html -- tidak
+         ditautkan di menu situs publik, cuma memakai warna & huruf
+         yang sama lewat variabel di assets/style.css. */
+      body {
+        background: var(--krem);
+        color: var(--teks);
+        font-family: var(--huruf);
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 24px 20px 80px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 8px 0 4px;
+      }
+      fieldset {
+        border: 1px solid var(--garis);
+        border-radius: 12px;
+        padding: 16px;
+        margin: 0 0 20px;
+      }
+      legend {
+        padding: 0 8px;
+        font-weight: 700;
+        color: var(--hijau);
+      }
+      .f-baris {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+      label {
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      input,
+      textarea,
+      select {
+        font: inherit;
+        padding: 8px 10px;
+        border: 1px solid var(--garis);
+        border-radius: 8px;
+        background: var(--putih);
+      }
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+      }
+      .baris-inline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .baris-inline label {
+        font-weight: 400;
+      }
+      button {
+        font: inherit;
+        font-weight: 700;
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background: var(--hijau);
+        color: #fff;
+      }
+      .angka-baris {
+        display: flex;
+        gap: 24px;
+        margin: 8px 0 20px;
+      }
+      .angka-satu {
+        background: var(--putih);
+        border: 1px solid var(--garis);
+        border-radius: 10px;
+        padding: 12px 20px;
+        text-align: center;
+      }
+      .angka-satu strong {
+        display: block;
+        font-size: 1.6rem;
+        color: var(--hijau);
+      }
+      .catatan {
+        font-size: 0.85rem;
+        color: var(--redup);
+      }
+    </style>
+  </head>
+
+  <body>
+    <p><a href="index.html">&larr; Kembali ke situs</a></p>
+    <h1>Toko Saya</h1>
+    <p class="catatan">
+      Lihat berapa orang melihat toko Anda &amp; mengeklik WhatsApp, dan
+      pasang promo yang tampil di halaman toko Anda sendiri. Kode akses
+      didapat dari pengurus desa/Karang Taruna.
+    </p>
+
+    <fieldset id="fieldset-masuk">
+      <legend>Masuk</legend>
+      <form id="form-masuk">
+        <div class="f-baris">
+          <label for="ts-slug">Toko</label>
+          <select id="ts-slug" required></select>
+        </div>
+        <div class="f-baris">
+          <label for="ts-kode">Kode akses</label>
+          <input id="ts-kode" type="password" autocomplete="off" required />
+        </div>
+        <button type="submit">Masuk</button>
+      </form>
+      <p class="status" id="masuk-status"></p>
+    </fieldset>
+
+    <fieldset id="fieldset-isi" hidden>
+      <legend>Statistik <span id="isi-nama-toko"></span></legend>
+      <div class="angka-baris">
+        <div class="angka-satu"><strong id="angka-kunjungan">0</strong>Kunjungan</div>
+        <div class="angka-satu"><strong id="angka-klik-wa">0</strong>Klik WhatsApp</div>
+      </div>
+      <div id="grafik-harian"></div>
+      <p class="catatan">14 hari terakhir.</p>
+    </fieldset>
+
+    <fieldset id="fieldset-promo" hidden>
+      <legend>Promo Toko</legend>
+      <p class="catatan">
+        Tampil di halaman profil toko Anda. Perubahan tampil di situs sekitar
+        30-60 menit setelah disimpan (menunggu sinkron terjadwal), bukan
+        langsung seketika.
+      </p>
+      <form id="form-promo">
+        <div class="f-baris">
+          <label for="promo-teks">Isi promo</label>
+          <textarea id="promo-teks" rows="3"></textarea>
+        </div>
+        <div class="baris-inline" style="margin-bottom:12px">
+          <input id="promo-aktif" type="checkbox" />
+          <label for="promo-aktif">Tampilkan promo ini di halaman toko</label>
+        </div>
+        <button type="submit">Simpan Promo</button>
+      </form>
+      <p class="status" id="promo-status"></p>
+    </fieldset>
+
+    <script src="data/katalog.js"></script>
+    <script src="assets/grafik.js"></script>
+    <script src="assets/toko-saya.js"></script>
+  </body>
+</html>

@@ -122,6 +122,23 @@ const SKEMA_TAB = {
       ["teks", "Isi ulasan", AREA, true],
     ],
   },
+  PROMO: {
+    label: "Promo per-UMKM",
+    ringkas: (r) => r.slug + (r.aktif && String(r.aktif).toUpperCase() === "TRUE" ? " (aktif)" : " (nonaktif)") + " — " + String(r.teks || "").slice(0, 40),
+    field: [
+      ["slug", "Slug UMKM (harus sama persis)", TEKS, true],
+      ["teks", "Isi promo", AREA, true],
+      ["aktif", "Tampilkan di halaman toko", CENTANG],
+    ],
+  },
+  AKSES_UMKM: {
+    label: "Kode akses toko",
+    ringkas: (r) => r.slug + " — kode: " + r.kode,
+    field: [
+      ["slug", "Slug UMKM (harus sama persis)", TEKS, true],
+      ["kode", "Kode akses (bebas, kabari pemilik toko lewat WA)", TEKS, true],
+    ],
+  },
 };
 
 /* ---------- Pengaturan (alamat Web App + kata sandi) ---------- */
@@ -178,8 +195,12 @@ async function panggilAppsScript(payload) {
   return j;
 }
 
+// Sandi selalu dikirim (bukan cuma untuk tab yang wajib) -- perlu
+// supaya tab AKSES_UMKM (kode privat tiap toko) bisa terbaca admin.
+// Untuk tab lain, Code.gs mengabaikannya begitu saja, jadi aman.
 async function panggilGet(tab) {
-  const j = await panggilAppsScript({ aksi: "baca", tab });
+  const { sandi } = nilaiPengaturanAktif();
+  const j = await panggilAppsScript({ aksi: "baca", tab, sandi });
   return j.data;
 }
 
@@ -215,6 +236,7 @@ let barisDiedit = null; // null = mode tambah; angka = mode ubah (nomor baris di
 function tutupKunci() {
   $("#fieldset-data").hidden = true;
   $("#fieldset-form").hidden = true;
+  $("#fieldset-statistik").hidden = true;
   $("#btn-masuk").hidden = false;
   $("#btn-keluar").hidden = true;
 }
@@ -222,8 +244,47 @@ function tutupKunci() {
 function bukaKunci() {
   $("#fieldset-data").hidden = false;
   $("#fieldset-form").hidden = false;
+  $("#fieldset-statistik").hidden = false;
   $("#btn-masuk").hidden = true;
   $("#btn-keluar").hidden = false;
+}
+
+/* ---------- Statistik kunjungan & klik-WA (semua toko) ---------- */
+
+async function muatStatistik() {
+  const kotak = $("#statistik-isi");
+  kotak.innerHTML = "Memuat...";
+  try {
+    const j = await panggilPost({ aksi: "bacaStatistik" });
+    const { perToko, harian } = j.data;
+
+    const slugSemua = Object.keys(perToko);
+    kotak.innerHTML = "";
+    if (!slugSemua.length) {
+      kotak.append(elemen("p", { kelas: "kosong-kecil" }, "Belum ada data kunjungan tercatat."));
+      return;
+    }
+
+    const dataToko = slugSemua
+      .map((slug) => ({ label: slug, a: perToko[slug].kunjungan, b: perToko[slug].klikWa }))
+      .sort((x, y) => y.a + y.b - (x.a + x.b))
+      .slice(0, 12); // batasi supaya grafik tetap terbaca kalau UMKM banyak
+
+    const dataHarian = harian.map((h) => ({
+      label: h.tanggal.slice(5), // "MM-DD" saja, cukup untuk sumbu
+      a: h.kunjungan,
+      b: h.klikWa,
+    }));
+
+    kotak.innerHTML =
+      "<h3>Per toko (kunjungan vs klik WhatsApp)</h3>" +
+      grafikBatangGanda(dataToko, { labelA: "Kunjungan", labelB: "Klik WA" }) +
+      '<h3 style="margin-top:24px">14 hari terakhir (semua toko)</h3>' +
+      grafikBatangGanda(dataHarian, { labelA: "Kunjungan", labelB: "Klik WA" });
+  } catch (err) {
+    kotak.innerHTML = "";
+    pesanStatus("Gagal memuat statistik: " + err.message, "galat");
+  }
 }
 
 function pesanStatus(teks, jenis) {
@@ -421,6 +482,7 @@ function pasang() {
       });
       bukaKunci();
       muatDaftar();
+      muatStatistik();
       pesanStatus("Berhasil masuk.", "ok");
     } catch (err) {
       pesanStatus("Gagal masuk: " + err.message, "galat");
@@ -447,6 +509,7 @@ function pasang() {
       .then(() => {
         bukaKunci();
         muatDaftar();
+        muatStatistik();
         pesanStatus("", "");
       })
       .catch((err) => {
@@ -463,6 +526,7 @@ function pasang() {
   });
 
   $("#btn-muat").addEventListener("click", muatDaftar);
+  $("#btn-muat-statistik").addEventListener("click", muatStatistik);
   $("#btn-tambah-baru").addEventListener("click", () => {
     mulaiTambah();
     pesanStatus("", "");

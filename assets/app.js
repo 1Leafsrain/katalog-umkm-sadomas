@@ -3,7 +3,15 @@
    Tidak perlu diubah untuk memperbarui isi. Ubah data/katalog.js.
 
    Ikon digambar langsung di berkas ini sebagai SVG, jadi tidak ada
-   permintaan ke server luar sama sekali.
+   permintaan ke server luar untuk itu.
+
+   SATU pengecualian yang disengaja: catatStatistik() mengirim
+   panggilan kecil & anonim ke Google Apps Script (backend yang sama
+   dipakai admin.html) tiap ada yang membuka halaman toko atau
+   mengeklik tombol WhatsApp -- ini satu-satunya cara menghitung
+   statistik dari SEMUA pengunjung, bukan cuma dari satu perangkat.
+   Panggilan ini selalu gagal-diam (lihat catatStatistik) -- tidak
+   pernah mengganggu tampilan situs kalau gagal/lambat/diblokir.
    ============================================================ */
 
 /* ---------- Ikon ---------- */
@@ -211,6 +219,46 @@ function cariUmkm(slug) {
 // terhitung (katalog, beranda, profil UMKM, halaman produk itu sendiri)
 // supaya jumlahnya konsisten di mana-mana.
 const PRODUK_TERBIT = PRODUK.filter((p) => !perluDiisi(p.harga));
+
+/* ---------- Statistik kunjungan & klik-WA ---------- */
+
+// GANTI dengan alamat Web App Apps Script (sama dengan yang dipakai di
+// bagian Pengaturan admin.html) setelah Code.gs versi baru di-deploy.
+// Selama masih "GANTI...", catatStatistik() tidak melakukan apa-apa.
+// Ada konstanta KEMBARAN di assets/toko-saya.js -- kalau salah satu
+// diubah, ubah juga yang lain, dua-duanya harus sama.
+const URL_STATISTIK = "GANTI_URL_APPS_SCRIPT";
+
+// Dipanggil dari halaman toko (kunjungan) dan tombol WhatsApp
+// (klik_wa). SENGAJA gagal-diam (.catch tanpa aksi) -- pencatatan
+// statistik tidak boleh pernah mengganggu pengalaman pengunjung biasa,
+// baik karena offline, Apps Script lambat, atau URL belum diisi.
+function catatStatistik(slug, jenis) {
+  if (!slug || !URL_STATISTIK || URL_STATISTIK.startsWith("GANTI")) return;
+  fetch(URL_STATISTIK, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ aksi: "catatStatistik", slug, jenis }),
+    keepalive: true,
+  }).catch(() => {});
+}
+
+// Beda dari catatStatistik: dipakai untuk aksi yang HASILNYA perlu
+// ditunjukkan ke pengguna (kirim ulasan) -- jadi harus melempar error
+// yang jelas, bukan gagal-diam.
+async function panggilStatistikPublik(payload) {
+  if (!URL_STATISTIK || URL_STATISTIK.startsWith("GANTI")) {
+    throw new Error("Fitur ini belum aktif.");
+  }
+  const res = await fetch(URL_STATISTIK, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload),
+  });
+  const j = await res.json();
+  if (j.galat) throw new Error(j.galat);
+  return j;
+}
 
 function produkMilik(slug) {
   return PRODUK_TERBIT.filter((p) => p.umkm === slug);
@@ -998,6 +1046,18 @@ function halamanUmkm() {
     return;
   }
 
+  // Sekali per sesi (tab peramban) per toko -- reload/kembali dengan
+  // tombol back tidak menghitung kunjungan berulang.
+  try {
+    const kunciSesi = "dicatat-" + u.slug;
+    if (!sessionStorage.getItem(kunciSesi)) {
+      sessionStorage.setItem(kunciSesi, "1");
+      catatStatistik(u.slug, "kunjungan");
+    }
+  } catch {
+    catatStatistik(u.slug, "kunjungan");
+  }
+
   aturSeoHalaman({
     judul: u.nama + " — UMKM Desa " + DESA.nama,
     deskripsi: ringkas(u.deskripsi, 155),
@@ -1024,12 +1084,19 @@ function halamanUmkm() {
     ". Saya ingin bertanya soal produknya.";
 
   const tombolWa = nomorSiap(u.wa)
-    ? '<a class="tombol tombol--hijau tombol--penuh" href="' +
+    ? '<a class="tombol tombol--hijau tombol--penuh" data-lacak="' +
+      aman(u.slug) +
+      '" href="' +
       tautanWa(u.wa, pesan) +
       '" target="_blank" rel="noopener">' +
       IKON.wa +
       "Hubungi via WhatsApp</a>"
     : '<span class="tombol tombol--mati tombol--penuh">Nomor WhatsApp belum diisi</span>';
+
+  const promo =
+    u.promo && u.promo.aktif && u.promo.teks
+      ? '<div class="promo-toko"><strong>Promo:</strong> ' + aman(u.promo.teks) + "</div>"
+      : "";
 
   const kontakBaris = [
     ["jam", "Jam Buka", u.jamBuka],
@@ -1077,6 +1144,7 @@ function halamanUmkm() {
     '<p class="hero__teks" style="margin:0">' +
     aman(u.deskripsi) +
     "</p>" +
+    promo +
     '<dl class="profil__meta">' +
     "<div><dt>Pemilik</dt><dd>" +
     aman(u.pemilik) +
@@ -1170,7 +1238,9 @@ function halamanProduk() {
     ". Apakah masih tersedia?";
 
   const tombolWa = nomorSiap(u.wa)
-    ? '<a class="tombol tombol--hijau tombol--penuh" href="' +
+    ? '<a class="tombol tombol--hijau tombol--penuh" data-lacak="' +
+      aman(p.umkm) +
+      '" href="' +
       tautanWa(u.wa, pesan) +
       '" target="_blank" rel="noopener">' +
       IKON.wa +
@@ -1209,10 +1279,8 @@ function halamanProduk() {
     )
     .join("");
 
-  const ulasan = (p.ulasan || []).length
-    ? '<section class="blok bagian--krem"><div class="blok__isi pad-60-20">' +
-      '<h2 class="judul-24" style="margin-bottom:24px">Ulasan Pembeli</h2>' +
-      '<div class="ulasan">' +
+  const daftarUlasan = (p.ulasan || []).length
+    ? '<div class="ulasan">' +
       p.ulasan
         .map(
           (r) =>
@@ -1229,8 +1297,32 @@ function halamanProduk() {
             "</p></div>",
         )
         .join("") +
-      "</div></div></section>"
-    : "";
+      "</div>"
+    : '<p class="kosong-kecil">Belum ada ulasan untuk produk ini.</p>';
+
+  const formUlasan =
+    '<form class="form-ulasan" id="form-ulasan">' +
+    '<h3 class="judul-20">Tulis Ulasan</h3>' +
+    '<div class="f-baris"><label for="fu-nama">Nama</label>' +
+    '<input id="fu-nama" type="text" required></div>' +
+    '<div class="f-baris"><label for="fu-asal">Asal / kota (boleh kosong)</label>' +
+    '<input id="fu-asal" type="text"></div>' +
+    '<div class="f-baris"><label for="fu-rating">Rating</label>' +
+    '<select id="fu-rating">' +
+    [5, 4, 3, 2, 1].map((n) => '<option value="' + n + '">' + n + " Bintang</option>").join("") +
+    "</select></div>" +
+    '<div class="f-baris"><label for="fu-teks">Ulasan</label>' +
+    '<textarea id="fu-teks" rows="3" required></textarea></div>' +
+    '<button class="tombol tombol--hijau" type="submit">Kirim Ulasan</button>' +
+    '<p class="status" id="fu-status"></p>' +
+    "</form>";
+
+  const ulasan =
+    '<section class="blok bagian--krem"><div class="blok__isi pad-60-20">' +
+    '<h2 class="judul-24" style="margin-bottom:24px">Ulasan Pembeli</h2>' +
+    daftarUlasan +
+    formUlasan +
+    "</div></section>";
 
   const lainnya = produkMilik(p.umkm).filter((x) => x.slug !== p.slug);
 
@@ -1317,7 +1409,9 @@ function halamanProduk() {
     document.body.classList.add("ada-batang");
     document.body.insertAdjacentHTML(
       "beforeend",
-      '<div class="batang-wa"><a class="tombol tombol--hijau tombol--penuh" href="' +
+      '<div class="batang-wa"><a class="tombol tombol--hijau tombol--penuh" data-lacak="' +
+        aman(p.umkm) +
+        '" href="' +
         tautanWa(u.wa, pesan) +
         '" target="_blank" rel="noopener">' +
         IKON.wa +
@@ -1345,6 +1439,40 @@ function halamanProduk() {
       /* dibatalkan pengguna */
     }
   });
+
+  const formUlasanEl = $("#form-ulasan");
+  const statusUlasan = $("#fu-status");
+  formUlasanEl.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const nama = $("#fu-nama").value.trim();
+    const teks = $("#fu-teks").value.trim();
+    if (!nama || !teks) {
+      statusUlasan.textContent = "Nama dan ulasan wajib diisi.";
+      statusUlasan.className = "status status--galat";
+      return;
+    }
+    statusUlasan.textContent = "Mengirim...";
+    statusUlasan.className = "status";
+    try {
+      await panggilStatistikPublik({
+        aksi: "kirimUlasan",
+        data: {
+          produk: p.slug,
+          nama,
+          asal: $("#fu-asal").value.trim(),
+          penilaian: Number($("#fu-rating").value),
+          teks,
+        },
+      });
+      formUlasanEl.reset();
+      statusUlasan.textContent =
+        "Terima kasih! Ulasan akan tampil di situs dalam waktu sekitar 30-60 menit setelah disinkronkan.";
+      statusUlasan.className = "status status--ok";
+    } catch (err) {
+      statusUlasan.textContent = "Gagal mengirim: " + err.message;
+      statusUlasan.className = "status status--galat";
+    }
+  });
 }
 
 /* ---------- Penjalan ---------- */
@@ -1358,6 +1486,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (halaman === "produk") halamanProduk();
   if (halaman === "wisata") halamanWisata();
   if (halaman === "destinasi") halamanDestinasi();
+
+  // Delegated, dipasang sekali -- menangkap klik tombol WhatsApp di
+  // halaman toko & produk manapun (lihat data-lacak yang ditambahkan
+  // di kartuUmkm/halamanUmkm/halamanProduk).
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a[data-lacak]");
+    if (a) catatStatistik(a.dataset.lacak, "klik_wa");
+  });
 });
 
 /* Daftarkan service worker (mode PWA / bisa dibuka offline). Alamatnya

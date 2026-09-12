@@ -92,6 +92,19 @@ await tulis(
   ]),
 );
 
+/* ---------- PROMO (satu per UMKM yang sudah pernah diisi) ---------- */
+await tulis(
+  "PROMO.csv",
+  ["slug", "teks", "aktif"],
+  UMKM.filter((u) => u.promo && u.promo.teks).map((u) => [
+    u.slug, u.promo.teks, u.promo.aktif ? "TRUE" : "FALSE",
+  ]),
+);
+
+/* ---------- AKSES_UMKM (kode akses toko -- RAHASIA, tidak ada sumbernya
+   di data/katalog.js, cuma header kolom supaya admin tinggal isi manual) ---------- */
+await tulis("AKSES_UMKM.csv", ["slug", "kode"], []);
+
 /* ---------- WISATA ---------- */
 await tulis(
   "WISATA.csv",

@@ -38,6 +38,7 @@ const { data: hasil, catat } = rakitData({
   produkRows: await bacaCsv("PRODUK.csv"),
   ulasanRows: await bacaCsv("ULASAN.csv"),
   wisataRows: await bacaCsv("WISATA.csv"),
+  promoRows: await bacaCsv("PROMO.csv"),
 });
 
 let gagal = false;

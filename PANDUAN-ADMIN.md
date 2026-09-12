@@ -7,9 +7,19 @@ dihost statis di GitHub Pages seperti halaman lain, tapi saat disimpan,
 datanya dikirim ke **Google Apps Script Web App** yang menulis langsung ke
 Sheet yang sama dipakai `PANDUAN-SHEET.md`.
 
-**Wajib sudah menyelesaikan `PANDUAN-SHEET.md` dulu** (Sheet dengan 7 tab
-sudah ada, sudah dibagikan "Anyone with the link"). Panduan ini menambah satu
-lapisan di atasnya, bukan pengganti.
+**Wajib sudah menyelesaikan `PANDUAN-SHEET.md` dulu** (Sheet dengan tab-tab
+katalog sudah ada, sudah dibagikan "Anyone with the link"). Panduan ini
+menambah satu lapisan di atasnya, bukan pengganti. Selain tab katalog, form
+admin ini juga butuh 2 tab tambahan yang khusus dijelaskan di sini:
+`AKSES_UMKM` (kode akses tiap toko) dan `STATISTIK` (log kunjungan/klik-WA)
+-- lihat `PANDUAN-SHEET.md` untuk kolomnya.
+
+> **Sudah pernah pasang `Code.gs` versi lama?** Bagian statistik, promo, dan
+> ulasan mandiri di bawah ini butuh `Code.gs` versi TERBARU. Ulangi langkah
+> 1-2 di bawah (salin ulang isi `scripts/apps-script/Code.gs` yang sekarang,
+> tempel menimpa yang lama, lalu **Deploy > Manage deployments** -> pensil
+> pada deployment aktif -> Version **New version** -> Deploy). Alamat Web
+> App-nya TIDAK berubah, jadi tidak perlu isi ulang di `admin.html`.
 
 ```
 admin.html (GitHub Pages)
@@ -82,8 +92,8 @@ deploy dan pastikan "Who has access" memang **Anyone**.
 3. Klik **Masuk**. Kalau kata sandinya cocok, bagian Data dan form
    tambah/ubah baru muncul. Kalau salah, tetap di layar Masuk dengan pesan
    "Kata sandi salah."
-4. Pilih **Jenis data** (UMKM / Produk / Wisata / Ulasan), klik
-   **Muat Daftar** untuk melihat data yang sudah ada.
+4. Pilih **Jenis data** (UMKM / Produk / Wisata / Ulasan / Promo per-UMKM /
+   Kode akses toko), klik **Muat Daftar** untuk melihat data yang sudah ada.
 5. **Tambah data baru**: klik **+ Tambah Baru**, isi form, klik **Simpan**.
 6. **Ubah data**: klik **Ubah** pada salah satu baris di daftar, ubah
    isiannya, klik **Simpan**.
@@ -94,10 +104,45 @@ deploy dan pastikan "Who has access" memang **Anyone**.
    perubahannya langsung tampil di situs -- jangan menunggu jadwal kalau
    memang ingin cepat.
 
-Halaman ini hanya menangani tab `UMKM`, `PRODUK`, `WISATA`, dan `ULASAN` --
-empat tab yang isinya banyak baris berulang. Tab `DESA`, `TESTIMONI`, dan
-`KATEGORI` isinya cuma sedikit baris/pengaturan, tetap diedit langsung di
-Sheet seperti dijelaskan di `PANDUAN-SHEET.md`.
+Halaman ini menangani tab `UMKM`, `PRODUK`, `WISATA`, `ULASAN`, `PROMO`, dan
+`AKSES_UMKM` -- tab-tab yang isinya banyak baris berulang. Tab `DESA`,
+`TESTIMONI`, dan `KATEGORI` isinya cuma sedikit baris/pengaturan, tetap
+diedit langsung di Sheet seperti dijelaskan di `PANDUAN-SHEET.md`.
+
+## 4. Statistik kunjungan & klik-WhatsApp
+
+Bagian **Statistik** di bawah Data/Form (muncul juga setelah berhasil
+Masuk) menunjukkan grafik kunjungan halaman toko & klik tombol WhatsApp,
+per toko dan 14 hari terakhir. Klik **Muat Statistik** untuk memuatnya --
+data ini dicatat langsung dari situs publik (tidak lewat GitHub Actions),
+jadi selalu bisa dimuat ulang tanpa menunggu sinkron.
+
+**Supaya statistik ini benar-benar tercatat**, isi konstanta
+`URL_STATISTIK` di `assets/app.js` DAN `assets/toko-saya.js` dengan Web
+App URL yang sama dipakai di atas (dua-duanya harus sama). Selama masih
+`"GANTI_URL_APPS_SCRIPT"`, situs publik tidak mencatat apa-apa (tidak
+error, cuma diam saja).
+
+## 5. Kode akses toko & halaman "Toko Saya"
+
+Tiap pemilik UMKM bisa lihat statistik tokonya sendiri dan mengatur
+promo yang tampil di halaman profil tokonya, lewat `toko-saya.html` --
+TANPA perlu kata sandi admin. Caranya:
+
+1. Di admin.html, pilih Jenis data **Kode akses toko**, klik **+ Tambah
+   Baru**.
+2. Isi **Slug UMKM** (harus sama persis dengan slug tokonya) dan **Kode
+   akses** bebas pilihan sendiri (tidak harus rumit, cukup mudah diingat
+   pemilik tokonya).
+3. Simpan, lalu kabari pemilik usahanya: alamat
+   `https://<akun>.github.io/katalog-umkm-sadomas/toko-saya.html`, nama
+   tokonya, dan kode aksesnya -- lewat WhatsApp atau langsung, bukan grup
+   umum.
+
+Pemilik toko masuk dengan memilih nama tokonya + kode akses. Promo yang
+disimpan lewat halaman itu tampil di situs publik sekitar 30-60 menit
+kemudian (menunggu sinkron terjadwal, sama seperti perubahan lewat
+admin.html), bukan langsung seketika.
 
 ## Soal keamanan -- baca ini
 
@@ -120,6 +165,22 @@ sama dengan yang sudah publik di halaman katalog.
 Tombol **Keluar** (muncul setelah berhasil masuk) mengunci lagi halamannya
 dan menghapus kata sandi yang sempat diingat di peramban itu -- pakai ini
 kalau memakai HP/komputer bersama.
+
+**`toko-saya.html` memakai model yang berbeda**, bukan kata sandi admin:
+tiap toko punya `kode` akses sendiri (tab `AKSES_UMKM`), dicek ulang ke
+server tiap kali dipakai (tidak pernah diingat di peramban). Ini juga
+bukan "login" sungguhan per orang -- satu kode dipakai bersama untuk satu
+toko, sama seperti kata sandi admin dipakai bersama semua pengurus. Tab
+`AKSES_UMKM` sendiri, berbeda dari tab lain, TIDAK bisa dibaca tanpa kata
+sandi admin (lihat `TAB_RAHASIA` di `Code.gs`) -- supaya kode tiap toko
+tidak ikut "publik" seperti data katalog lainnya.
+
+Dua aksi lain (`catatStatistik` untuk mencatat kunjungan/klik-WA, dan
+`kirimUlasan` untuk ulasan pembeli) sengaja TIDAK butuh kata sandi maupun
+kode apa pun -- keduanya dipanggil otomatis dari situs publik untuk SEMUA
+pengunjung. Validasinya diperketat di `Code.gs` (slug harus toko/produk
+yang benar-benar ada, rating harus 1-5, dst.) supaya tidak jadi jalan
+belakang menulis data bebas.
 
 Karena itu:
 
@@ -154,7 +215,17 @@ lagi supaya daftarnya segar, lalu ulangi.
   (biasanya karena `KATA_SANDI` baru saja diganti). Masuk ulang dengan kata
   sandi yang baru.
 - **"Tab '...' tidak dikenal"** -- nama tab di Sheet berubah/typo. Nama tab
-  harus persis `UMKM`, `PRODUK`, `WISATA`, `ULASAN`.
+  harus persis `UMKM`, `PRODUK`, `WISATA`, `ULASAN`, `PROMO`, `AKSES_UMKM`.
+- **Bagian Statistik selalu kosong / "Belum ada data kunjungan tercatat"**
+  -- kemungkinan `URL_STATISTIK` di `assets/app.js` masih
+  `"GANTI_URL_APPS_SCRIPT"` (situs publik belum pernah mencatat apa-apa),
+  atau memang belum ada pengunjung sejak diaktifkan.
+- **Di `toko-saya.html`, "Slug atau kode akses salah"** -- cocokkan lagi
+  dengan baris di tab `AKSES_UMKM`; ingat besar/kecil huruf ikut
+  diperhatikan.
+- **Di `toko-saya.html`/form ulasan produk, "Fitur ini belum aktif"** --
+  `URL_STATISTIK` di `assets/toko-saya.js`/`assets/app.js` masih belum
+  diisi alamat Web App yang benar.
 - Error CORS di console peramban (`blocked by CORS policy`) -- coba deploy
   ulang Web App-nya (langkah 2), pastikan "Who has access" masih **Anyone**.
 - Kolom `wa`/`kontak` tetap sebaiknya diperiksa sesekali langsung di Sheet --

@@ -162,9 +162,21 @@ export function buatKategori(rows) {
     .filter((k) => k.id);
 }
 
+/* ---------- PROMO (satu per UMKM, dikelola pemilik toko lewat kode akses) ---------- */
+
+export function buatPromoMap(rows) {
+  const peta = new Map();
+  rows.forEach((r) => {
+    const slug = t(r.slug);
+    if (!slug) return;
+    peta.set(slug, { teks: t(r.teks), aktif: keBoolean(r.aktif) });
+  });
+  return peta;
+}
+
 /* ---------- UMKM ---------- */
 
-export function buatUmkm(rows, catat) {
+export function buatUmkm(rows, catat, promoMap) {
   const dipakai = new Set();
   const hasil = [];
   rows.forEach((r, idx) => {
@@ -194,6 +206,7 @@ export function buatUmkm(rows, catat) {
       pengiriman: t(r.pengiriman),
       fotoLokasi: t(r.fotoLokasi),
       deskripsi: t(r.deskripsi),
+      promo: (promoMap && promoMap.get(slug)) || { teks: "", aktif: false },
     });
   });
   return hasil;
@@ -322,13 +335,15 @@ export function rakitData({
   produkRows,
   ulasanRows,
   wisataRows,
+  promoRows,
 }) {
   const catat = { peringatan: [], galat: [] };
 
   const DESA = buatDesa(desaRows, catat);
   const TESTIMONI = buatTestimoni(testimoniRows);
   const KATEGORI = buatKategori(kategoriRows);
-  const UMKM = buatUmkm(umkmRows, catat);
+  const promoMap = buatPromoMap(promoRows || []);
+  const UMKM = buatUmkm(umkmRows, catat, promoMap);
   const WISATA = buatWisata(wisataRows, catat);
   const umkmSlugSet = new Set(UMKM.map((u) => u.slug));
   const ulasanMap = buatUlasanMap(ulasanRows, catat);

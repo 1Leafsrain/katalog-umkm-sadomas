@@ -1139,6 +1139,67 @@ svg {
   color: var(--teks);
 }
 
+.kosong-kecil {
+  color: var(--redup);
+  font-size: 0.9rem;
+}
+
+/* Form ulasan pembeli (produk.html) & form masuk/promo (toko-saya.html) */
+.form-ulasan,
+.form-toko {
+  max-width: 480px;
+  margin-top: 32px;
+}
+.form-ulasan .f-baris,
+.form-toko .f-baris {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.form-ulasan label,
+.form-toko label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--teks);
+}
+.form-ulasan input,
+.form-ulasan select,
+.form-ulasan textarea,
+.form-toko input,
+.form-toko select,
+.form-toko textarea {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--garis);
+  border-radius: 8px;
+  background: var(--putih);
+}
+.status {
+  margin: 16px 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  min-height: 1px;
+}
+.status--ok {
+  background: var(--hijau-muda);
+  color: var(--hijau);
+}
+.status--galat {
+  background: #fbdedb;
+  color: #7a241f;
+}
+
+.promo-toko {
+  background: var(--hijau-muda);
+  color: var(--hijau);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin: 12px 0 0;
+}
+
 .testimoni {
   display: flex;
   align-items: center;

@@ -27,6 +27,7 @@ assets/fonts/      huruf Plus Jakarta Sans, disimpan sendiri
 assets/icons/      ikon PWA (dibuat dari lambang daun yang sama dengan favicon)
 assets/img/        tempat menyimpan foto produk
 admin.html         form tambah/ubah/hapus data (opsional, lihat PANDUAN-ADMIN.md)
+toko-saya.html     statistik & promo mandiri per-UMKM lewat kode akses (opsional)
 scripts/           alat bantu Node.js (mode Google Sheet opsional, + pembuat sitemap.xml)
 scripts/apps-script/ kode Google Apps Script untuk form admin (opsional)
 .github/workflows/ workflow GitHub Actions (Sheet opsional; pembuat sitemap selalu aktif)
@@ -40,7 +41,7 @@ scripts/apps-script/ kode Google Apps Script untuk form admin (opsional)
    pengelola cukup pegang Google Sheets, tidak perlu akun GitHub sama
    sekali. Sebuah GitHub Actions menariknya secara berkala dan
    men-commit-kan `data/katalog.js` secara otomatis; situsnya sendiri
-   tetap 100% statis, pengunjung tidak pernah menghubungi Google.
+   tetap statis (lihat pengecualian statistik/ulasan di bawah).
 3. **Edit lewat form admin (`admin.html`)** -- lihat `PANDUAN-ADMIN.md`.
    Dibangun di atas cara nomor 2: halaman form statis yang menulis ke Sheet
    yang sama lewat Google Apps Script, jadi pengurus tidak perlu buka
@@ -51,7 +52,7 @@ Kalau mode Sheet sudah dipakai (variabel `SHEET_ID` sudah diisi),
 `data/katalog.js` berubah jadi berkas hasil otomatis -- jangan diedit
 langsung lagi, ikuti cara nomor 2 atau 3.
 
-## Tidak ada satu pun panggilan ke server luar
+## Hampir tidak ada panggilan ke server luar
 
 Halaman ini tidak memuat Tailwind CDN, Google Fonts, pustaka ikon, maupun
 skrip pihak ketiga. Semuanya ada di dalam repositori:
@@ -66,6 +67,18 @@ skrip pihak ketiga. Semuanya ada di dalam repositori:
 
 Akibatnya situs tetap terbuka penuh walau jaringan sedang buruk, dan tidak ada
 bagian yang mendadak rusak kalau layanan pihak ketiga berubah atau diblokir.
+
+**Satu pengecualian yang disengaja**: `assets/app.js` (fungsi
+`catatStatistik`/`panggilStatistikPublik`) memanggil Google Apps Script
+(backend yang sama dipakai `admin.html`) untuk tiga hal -- mencatat
+kunjungan halaman toko, mencatat klik tombol WhatsApp, dan mengirim
+ulasan pembeli. Ini satu-satunya cara menghitung statistik dari SEMUA
+pengunjung (bukan cuma dari satu perangkat lewat localStorage), dan
+satu-satunya cara pembeli mengirim ulasannya sendiri. Panggilan ini
+selalu anonim dan gagal-diam -- kalau gagal/lambat/diblokir, situs tetap
+tampil normal, cuma statistiknya yang tidak tercatat. Lihat
+`PANDUAN-SHEET.md` bagian tab `STATISTIK`/`AKSES_UMKM`/`PROMO` dan
+`toko-saya.html` untuk detailnya.
 
 ## Memasang ke GitHub Pages
 

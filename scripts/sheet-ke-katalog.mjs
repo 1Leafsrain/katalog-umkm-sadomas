@@ -25,7 +25,7 @@ import { rakitData, buatIsiBerkas } from "./skema.mjs";
 
 const SHEET_ID = process.env.SHEET_ID;
 
-const TAB = ["DESA", "TESTIMONI", "KATEGORI", "UMKM", "PRODUK", "ULASAN", "WISATA"];
+const TAB = ["DESA", "TESTIMONI", "KATEGORI", "UMKM", "PRODUK", "ULASAN", "WISATA", "PROMO"];
 
 if (!SHEET_ID) {
   console.error(
@@ -68,6 +68,7 @@ async function utama() {
     produkRows,
     ulasanRows,
     wisataRows,
+    promoRows,
   ] = await Promise.all(TAB.map(ambilTab));
 
   const { data, catat } = rakitData({
@@ -78,6 +79,7 @@ async function utama() {
     produkRows,
     ulasanRows,
     wisataRows,
+    promoRows,
   });
 
   if (catat.peringatan.length) {
