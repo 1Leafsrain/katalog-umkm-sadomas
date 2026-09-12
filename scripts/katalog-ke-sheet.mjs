@@ -81,12 +81,12 @@ await tulis(
 await tulis(
   "UMKM.csv",
   [
-    "slug", "nama", "kategori", "pemilik", "berdiri", "pekerja", "wa",
+    "slug", "nama", "kategori", "pemilik", "wa",
     "alamat", "foto", "penilaian", "jamBuka", "pengiriman", "fotoLokasi",
     "deskripsi",
   ],
   UMKM.map((u) => [
-    u.slug, u.nama, u.kategori, u.pemilik, u.berdiri, u.pekerja, u.wa,
+    u.slug, u.nama, u.kategori, u.pemilik, u.wa,
     u.alamat, u.foto, u.penilaian, u.jamBuka, u.pengiriman, u.fotoLokasi,
     u.deskripsi,
   ]),

@@ -1081,12 +1081,6 @@ function halamanUmkm() {
     "<div><dt>Pemilik</dt><dd>" +
     aman(u.pemilik) +
     "</dd></div>" +
-    "<div><dt>Mulai berjalan</dt><dd>" +
-    aman(u.berdiri) +
-    "</dd></div>" +
-    "<div><dt>Jumlah pekerja</dt><dd>" +
-    aman(u.pekerja) +
-    "</dd></div>" +
     "<div><dt>Produk terdaftar</dt><dd>" +
     daftar.length +
     " produk</dd></div>" +

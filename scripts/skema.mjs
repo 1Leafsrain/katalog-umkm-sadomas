@@ -186,8 +186,6 @@ export function buatUmkm(rows, catat) {
       nama,
       kategori: t(r.kategori),
       pemilik: t(r.pemilik),
-      berdiri: t(r.berdiri),
-      pekerja: t(r.pekerja),
       wa: nomorAman(r.wa, "UMKM '" + slug + "' kolom wa", catat),
       alamat: t(r.alamat),
       foto: t(r.foto),

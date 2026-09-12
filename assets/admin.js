@@ -64,8 +64,6 @@ const SKEMA_TAB = {
       ["nama", "Nama usaha", TEKS, true],
       ["kategori", "Kategori (kuliner / pertanian / perikanan / kerajinan)", TEKS, true],
       ["pemilik", "Nama pemilik", TEKS],
-      ["berdiri", "Tahun berdiri", TEKS],
-      ["pekerja", "Jumlah pekerja", TEKS],
       ["wa", "Nomor WhatsApp (awalan 62, contoh 6281234567890)", TEKS],
       ["alamat", "Alamat", TEKS],
       ["foto", "Nama berkas foto utama (di assets/img/)", TEKS],

@@ -127,7 +127,7 @@ Mengubah `nama` (label yang tampil) aman-aman saja.
 
 ### Tab `UMKM`
 
-`slug`, `nama`, `kategori`, `pemilik`, `berdiri`, `pekerja`, `wa`,
+`slug`, `nama`, `kategori`, `pemilik`, `wa`,
 `alamat`, `foto`, `penilaian`, `jamBuka`, `pengiriman`, `fotoLokasi`,
 dan `deskripsi`.
 
