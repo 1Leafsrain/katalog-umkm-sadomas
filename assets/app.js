@@ -67,6 +67,8 @@ const IKON = {
     "<svg " + G + '><path d="m8 3 4 8 5-5 5 15H2L8 3Z"/></svg>',
   tiket:
     "<svg " + G + '><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>',
+  kunci:
+    "<svg " + G + '><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
 };
 
 /* Ikon per kategori. Kunci harus sama dengan id kategori di data. */
@@ -167,7 +169,7 @@ function aturSeoHalaman({ judul, deskripsi, foto }) {
   if (deskripsi) metaProperti("og:description", deskripsi);
   metaProperti("og:url", kanonik);
   metaProperti("og:type", "website");
-  if (foto) metaProperti("og:image", absolut("assets/img/" + foto));
+  if (foto) metaProperti("og:image", absolut(jalurFoto(foto)));
 }
 
 /** Data terstruktur schema.org (JSON-LD) supaya Google berpeluang menampilkan
@@ -264,6 +266,15 @@ function produkMilik(slug) {
   return PRODUK_TERBIT.filter((p) => p.umkm === slug);
 }
 
+/** Foto bisa berupa nama berkas di assets/img/ (kebiasaan lama, ditulis
+ *  manual di admin) ATAU URL penuh hasil unggah lewat admin (Google
+ *  Drive) -- keduanya boleh dipakai campur di data yang sama. */
+function jalurFoto(foto) {
+  const s = String(foto || "").trim();
+  if (!s) return "";
+  return /^https?:\/\//i.test(s) ? s : "assets/img/" + s;
+}
+
 /** Kotak gambar. Bila foto kosong, tampil motif anyaman + keterangan. */
 function gambar(foto, alt, kelas, label) {
   const kelasnya = "gambar " + (kelas || "");
@@ -271,8 +282,8 @@ function gambar(foto, alt, kelas, label) {
     return (
       '<div class="' +
       kelasnya +
-      '"><img src="assets/img/' +
-      aman(foto) +
+      '"><img src="' +
+      aman(jalurFoto(foto)) +
       '" alt="' +
       aman(alt) +
       '" loading="lazy"></div>'
@@ -352,6 +363,9 @@ function susunKepala() {
     '<div class="kepala__kanan">' +
     '<a class="bulat" href="katalog.html" aria-label="Cari produk">' +
     IKON.cari +
+    "</a>" +
+    '<a class="bulat" href="admin.html" aria-label="Admin" title="Admin">' +
+    IKON.kunci +
     "</a>" +
     tombolDesa +
     '<button class="tombol-menu" type="button" aria-expanded="false" aria-controls="menu-utama">Menu</button>' +
@@ -927,7 +941,7 @@ function halamanDestinasi() {
     name: w.nama,
     description: w.deskripsi || undefined,
     address: w.alamat || undefined,
-    image: w.foto ? absolut("assets/img/" + w.foto) : undefined,
+    image: w.foto ? absolut(jalurFoto(w.foto)) : undefined,
     url: location.origin + location.pathname + location.search,
   });
 
@@ -1070,7 +1084,7 @@ function halamanUmkm() {
     description: u.deskripsi || undefined,
     address: u.alamat || undefined,
     telephone: nomorSiap(u.wa) ? "+" + String(u.wa).replace(/\D/g, "") : undefined,
-    image: u.foto ? absolut("assets/img/" + u.foto) : undefined,
+    image: u.foto ? absolut(jalurFoto(u.foto)) : undefined,
     url: location.origin + location.pathname + location.search,
   });
   const daftar = produkMilik(u.slug);
@@ -1220,7 +1234,7 @@ function halamanProduk() {
     "@type": "Product",
     name: p.nama,
     description: p.deskripsi || undefined,
-    image: p.foto ? absolut("assets/img/" + p.foto) : undefined,
+    image: p.foto ? absolut(jalurFoto(p.foto)) : undefined,
     brand: u.nama ? { "@type": "Brand", name: u.nama } : undefined,
     url: location.origin + location.pathname + location.search,
   });
@@ -1396,8 +1410,8 @@ function halamanProduk() {
         .forEach((x) => x.setAttribute("aria-current", "false"));
       t.setAttribute("aria-current", "true");
       utama.innerHTML =
-        '<img src="assets/img/' +
-        t.dataset.foto +
+        '<img src="' +
+        aman(jalurFoto(t.dataset.foto)) +
         '" alt="' +
         aman(p.nama) +
         '">';

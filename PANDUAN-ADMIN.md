@@ -14,12 +14,16 @@ admin ini juga butuh 2 tab tambahan yang khusus dijelaskan di sini:
 `AKSES_UMKM` (kode akses tiap toko) dan `STATISTIK` (log kunjungan/klik-WA)
 -- lihat `PANDUAN-SHEET.md` untuk kolomnya.
 
-> **Sudah pernah pasang `Code.gs` versi lama?** Bagian statistik, promo, dan
-> ulasan mandiri di bawah ini butuh `Code.gs` versi TERBARU. Ulangi langkah
-> 1-2 di bawah (salin ulang isi `scripts/apps-script/Code.gs` yang sekarang,
-> tempel menimpa yang lama, lalu **Deploy > Manage deployments** -> pensil
-> pada deployment aktif -> Version **New version** -> Deploy). Alamat Web
-> App-nya TIDAK berubah, jadi tidak perlu isi ulang di `admin.html`.
+> **Sudah pernah pasang `Code.gs` versi lama?** Bagian statistik, promo,
+> ulasan mandiri, DAN unggah foto di bawah ini butuh `Code.gs` versi
+> TERBARU. Ulangi langkah 1-2 di bawah (salin ulang isi
+> `scripts/apps-script/Code.gs` yang sekarang, tempel menimpa yang lama,
+> lalu **Deploy > Manage deployments** -> pensil pada deployment aktif ->
+> Version **New version** -> Deploy). Alamat Web App-nya TIDAK berubah,
+> jadi tidak perlu isi ulang di `admin.html`. Karena versi terbaru
+> menambah akses ke Google Drive (untuk unggah foto), Google akan
+> menampilkan lagi layar izin ("Authorize access") saat Deploy -- klik
+> **Allow** seperti langkah 1.5 di bawah.
 
 ```
 admin.html (GitHub Pages)
@@ -144,11 +148,43 @@ disimpan lewat halaman itu tampil di situs publik sekitar 30-60 menit
 kemudian (menunggu sinkron terjadwal, sama seperti perubahan lewat
 admin.html), bukan langsung seketika.
 
+## 6. Mengunggah foto lewat form admin
+
+Kolom **Foto utama**, **Foto lokasi**, dan foto galeri (di UMKM, Produk,
+Wisata) punya dua cara diisi, berdampingan:
+
+1. **Unggah langsung** -- klik **Choose File**, pilih foto dari HP/komputer.
+   Foto dikecilkan otomatis di peramban (maksimum sisi 1600px, dimampatkan
+   ke JPEG) lalu dikirim ke Apps Script, yang menyimpannya ke sebuah folder
+   Google Drive bernama **"Katalog UMKM Sadomas - Foto"** (dibuat otomatis
+   di Drive akun yang dipakai men-deploy Apps Script, saat unggahan
+   pertama). Kolom teksnya otomatis terisi URL Drive hasil unggahan, dan
+   muncul pratinjau kecil di bawahnya.
+2. **Ketik manual** -- seperti sebelumnya, ketik nama berkas yang sudah ada
+   di folder `assets/img/` repositori GitHub (untuk foto lama/bawaan).
+
+Kedua cara boleh dicampur bebas antar baris data -- sebagian foto lama tetap
+berupa nama berkas, foto baru berupa URL Drive, keduanya tampil sama-sama
+benar di katalog publik.
+
+**Foto yang diunggah TIDAK ikut alur sinkron GitHub Actions** -- begitu
+tersimpan ke Drive, URL-nya langsung valid. Yang tetap menunggu sinkron
+30-60 menit hanyalah munculnya URL itu di katalog publik (sama seperti
+kolom data lain yang diubah lewat admin.html).
+
+Catatan keandalan: `drive.google.com/uc?export=view` adalah cara resmi
+Google untuk menyajikan isi berkas Drive yang dibagikan publik, tapi bukan
+CDN khusus gambar -- untuk katalog skala desa dengan pengunjung wajar ini
+lebih dari cukup. Kalau suatu saat foto sering gagal tampil karena lalu
+lintas yang sangat tinggi, pindahkan foto itu manual ke `assets/img/` lewat
+GitHub dan ganti isian kolomnya jadi nama berkas.
+
 ## Soal keamanan -- baca ini
 
 `admin.html` **bisa dibuka siapa saja yang tahu alamatnya** -- GitHub Pages
-tidak punya sistem login. Halaman ini sengaja tidak ditautkan di menu situs
-supaya tidak gampang ditemukan, tapi itu bukan pengaman sungguhan. Layar
+tidak punya sistem login. Halaman ini ditautkan lewat ikon gembok di pojok
+kanan atas situs untuk kemudahan pengurus, tapi itu bukan pengaman
+sungguhan (siapa pun boleh mengeklik ikon itu, bukan cuma pengurus). Layar
 **Masuk** di depannya juga bukan login sungguhan (tidak ada akun per orang)
 -- tetap satu kata sandi yang sama dipakai bersama semua pengurus.
 
@@ -228,6 +264,14 @@ lagi supaya daftarnya segar, lalu ulangi.
   diisi alamat Web App yang benar.
 - Error CORS di console peramban (`blocked by CORS policy`) -- coba deploy
   ulang Web App-nya (langkah 2), pastikan "Who has access" masih **Anyone**.
+- **"Gagal mengunggah: ..." di bawah kolom foto** -- kalau pesannya
+  menyebut "Kata sandi salah", isi dulu kata sandi admin di bagian
+  Pengaturan/Masuk (unggah foto butuh sandi, sama seperti simpan data
+  lain). Kalau menyebut jenis berkas tidak didukung, pilih berkas
+  JPG/PNG/WEBP. Kalau ini muncul pertama kali setelah deploy ulang
+  `Code.gs`, kemungkinan Google belum diberi izin akses Drive -- ulangi
+  **Deploy > Manage deployments** dan pastikan izin ("Authorize access")
+  sudah di-**Allow**.
 - Kolom `wa`/`kontak` tetap sebaiknya diperiksa sesekali langsung di Sheet --
   `Code.gs` sudah memaksa format sel jadi Teks Biasa sebelum menulis nomor,
   tapi kalau ada keraguan, buka selnya dan pastikan tidak berubah jadi

@@ -75,7 +75,7 @@ const TESTIMONI = {
   teks: "GANTI: kutipan asli dari pelaku UMKM atau perangkat desa.",
   nama: "GANTI: nama narasumber",
   peran: "GANTI: jabatan atau nama usahanya",
-  foto: "", // nama berkas di assets/img/
+  foto: "", // nama berkas di assets/img/, ATAU URL foto penuh (hasil unggah lewat admin.html)
 };
 
 /* Kategori. "id" dipakai di data UMKM & produk, "nama" yang tampil di layar. */
@@ -89,7 +89,8 @@ const KATEGORI = [
 /* ------------------------------------------------------------
    DAFTAR UMKM
    slug      = alamat halaman, huruf kecil tanpa spasi (pakai tanda -)
-   foto      = nama berkas di folder assets/img/. Kosongkan bila belum ada.
+   foto      = nama berkas di folder assets/img/, ATAU URL foto penuh
+               (hasil unggah lewat admin.html). Kosongkan bila belum ada.
    penilaian = bintang 1-5. BIARKAN 0 selama belum ada penilaian nyata;
                bintang hanya muncul kalau isinya lebih dari 0.
    ------------------------------------------------------------ */
@@ -325,7 +326,8 @@ const UMKM = [
    jenis     = contoh: Air Terjun, Bukit, Kolam Pemandian
    kontak    = nomor WhatsApp yang bisa dihubungi untuk bertanya soal
                lokasi ini. Boleh dikosongkan agar memakai WA desa.
-   foto      = nama berkas di folder assets/img/. Kosongkan bila belum ada.
+   foto      = nama berkas di folder assets/img/, ATAU URL foto penuh
+               (hasil unggah lewat admin.html). Kosongkan bila belum ada.
    penilaian = bintang 1-5. BIARKAN 0 selama belum ada penilaian nyata.
    galeri    = foto suasana lokasi (paling banyak 4). Boleh dikosongkan.
    ------------------------------------------------------------ */

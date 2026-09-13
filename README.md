@@ -80,6 +80,12 @@ tampil normal, cuma statistiknya yang tidak tercatat. Lihat
 `PANDUAN-SHEET.md` bagian tab `STATISTIK`/`AKSES_UMKM`/`PROMO` dan
 `toko-saya.html` untuk detailnya.
 
+`admin.html` sendiri (opsional, dipakai pengurus) memang selalu bicara ke
+Apps Script untuk tiap tambah/ubah/hapus data -- termasuk aksi
+`unggahFoto`, yang menyimpan foto ke sebuah folder Google Drive (bukan ke
+repositori GitHub seperti `assets/img/`). Lihat `PANDUAN-ADMIN.md` bagian
+"Mengunggah foto lewat form admin".
+
 ## Memasang ke GitHub Pages
 
 1. Buat akun GitHub **memakai email desa**, bukan email pribadi mahasiswa.

@@ -10,10 +10,12 @@
    bergantung pada konfigurasi server yang tidak dikendalikan dari
    sini, dua angka di bawah cukup disalin manual dari skema.mjs.
 
-   Halaman ini SENGAJA tidak ditautkan di menu situs. Tetap bisa
-   dibuka siapa saja yang tahu alamatnya (GitHub Pages tidak punya
-   login) -- yang benar-benar menahan penulisan data adalah
-   pengecekan kata sandi di Apps Script (Code.gs), bukan halaman ini.
+   Halaman ini ditautkan lewat ikon gembok di pojok kanan atas kepala
+   situs (lihat susunKepala() di app.js), tapi itu cuma kemudahan --
+   siapa pun yang tahu alamatnya tetap bisa membukanya langsung (GitHub
+   Pages tidak punya login halaman). Yang benar-benar menahan penulisan
+   data adalah pengecekan kata sandi di Apps Script (Code.gs), bukan
+   halaman ini ataupun tertaut-tidaknya dari menu.
    ============================================================ */
 
 // Harus selalu sama dengan JUMLAH_GALERI/JUMLAH_RINCIAN di
@@ -27,12 +29,13 @@ const TEKS = "teks";
 const AREA = "area";
 const ANGKA = "angka";
 const CENTANG = "centang";
+const FOTO = "foto";
 
 function kolomGaleri() {
   const hasil = [];
   for (let i = 1; i <= JUMLAH_GALERI; i++) {
     hasil.push([`galeri${i}_judul`, `Galeri ${i} — judul`, TEKS]);
-    hasil.push([`galeri${i}_foto`, `Galeri ${i} — nama berkas foto`, TEKS]);
+    hasil.push([`galeri${i}_foto`, `Galeri ${i} — foto`, FOTO]);
   }
   return hasil;
 }
@@ -40,7 +43,7 @@ function kolomGaleri() {
 function kolomGaleriProduk() {
   const hasil = [];
   for (let i = 1; i <= JUMLAH_GALERI; i++) {
-    hasil.push([`galeri${i}`, `Foto tambahan ${i} — nama berkas`, TEKS]);
+    hasil.push([`galeri${i}`, `Foto tambahan ${i}`, FOTO]);
   }
   return hasil;
 }
@@ -66,11 +69,11 @@ const SKEMA_TAB = {
       ["pemilik", "Nama pemilik", TEKS],
       ["wa", "Nomor WhatsApp (awalan 62, contoh 6281234567890)", TEKS],
       ["alamat", "Alamat", TEKS],
-      ["foto", "Nama berkas foto utama (di assets/img/)", TEKS],
+      ["foto", "Foto utama", FOTO],
       ["penilaian", "Penilaian (0-5, biarkan 0 bila belum ada)", ANGKA],
       ["jamBuka", "Jam buka", TEKS],
       ["pengiriman", "Pengiriman", TEKS],
-      ["fotoLokasi", "Nama berkas foto lokasi", TEKS],
+      ["fotoLokasi", "Foto lokasi", FOTO],
       ["deskripsi", "Deskripsi", AREA, true],
     ],
   },
@@ -84,7 +87,7 @@ const SKEMA_TAB = {
       ["kategori", "Kategori", TEKS, true],
       ["harga", "Harga (kisaran, contoh Rp15.000 – Rp18.000)", TEKS],
       ["satuan", "Satuan (contoh per kotak isi 10 buah)", TEKS],
-      ["foto", "Nama berkas foto utama", TEKS],
+      ["foto", "Foto utama", FOTO],
       ["penilaian", "Penilaian (0-5, biarkan 0 bila belum ada)", ANGKA],
       ...kolomGaleriProduk(),
       ["unggulan", "Tampilkan di beranda sebagai produk unggulan", CENTANG],
@@ -103,8 +106,8 @@ const SKEMA_TAB = {
       ["jamBuka", "Jam buka", TEKS],
       ["tiket", "Tiket masuk", TEKS],
       ["kontak", "Nomor WhatsApp kontak (kosongkan untuk pakai WA desa)", TEKS],
-      ["foto", "Nama berkas foto utama", TEKS],
-      ["fotoLokasi", "Nama berkas foto lokasi", TEKS],
+      ["foto", "Foto utama", FOTO],
+      ["fotoLokasi", "Foto lokasi", FOTO],
       ["penilaian", "Penilaian (0-5, biarkan 0 bila belum ada)", ANGKA],
       ["keteranganGaleri", "Keterangan galeri suasana", TEKS],
       ...kolomGaleri(),
@@ -208,6 +211,85 @@ async function panggilPost(payload) {
   const { sandi } = nilaiPengaturanAktif();
   if (!sandi) throw new Error("Kata sandi admin belum diisi di bagian Pengaturan.");
   return panggilAppsScript({ ...payload, sandi });
+}
+
+/* ---------- Unggah foto ke Google Drive lewat Code.gs ---------- */
+
+// Dikecilkan di peramban SEBELUM dikirim -- foto langsung dari HP bisa
+// beberapa MB, padahal katalog cukup butuh ukuran layar. Ini juga yang
+// menjaga permintaan ke Apps Script tetap kecil (ada batas ukuran di
+// Code.gs sebagai jaring pengaman, lihat UKURAN_FOTO_MAKS di sana).
+const SISI_FOTO_MAKS = 1600; // px, sisi terpanjang setelah dikecilkan
+const KUALITAS_FOTO = 0.82;
+
+// Sama persis dengan jalurFoto() di assets/app.js -- foto bisa berupa
+// nama berkas lama (assets/img/...) atau URL Drive hasil unggah baru.
+function jalurFotoTampil(foto) {
+  const s = String(foto || "").trim();
+  if (!s) return "";
+  return /^https?:\/\//i.test(s) ? s : "assets/img/" + s;
+}
+
+function kecilkanFoto(file) {
+  return new Promise((resolve, reject) => {
+    const gambar = new Image();
+    const urlSementara = URL.createObjectURL(file);
+    gambar.onload = () => {
+      URL.revokeObjectURL(urlSementara);
+      const sisi = Math.max(gambar.naturalWidth, gambar.naturalHeight);
+      const skala = sisi > SISI_FOTO_MAKS ? SISI_FOTO_MAKS / sisi : 1;
+      const kanvas = document.createElement("canvas");
+      kanvas.width = Math.round(gambar.naturalWidth * skala);
+      kanvas.height = Math.round(gambar.naturalHeight * skala);
+      kanvas.getContext("2d").drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
+      kanvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error("Gagal memproses foto."));
+          const pembaca = new FileReader();
+          pembaca.onload = () => {
+            const hasil = String(pembaca.result || "");
+            resolve({ dataBase64: hasil.slice(hasil.indexOf(",") + 1), tipeMime: "image/jpeg" });
+          };
+          pembaca.onerror = () => reject(new Error("Gagal membaca foto yang sudah dikecilkan."));
+          pembaca.readAsDataURL(blob);
+        },
+        "image/jpeg",
+        KUALITAS_FOTO,
+      );
+    };
+    gambar.onerror = () => {
+      URL.revokeObjectURL(urlSementara);
+      reject(new Error("Berkas yang dipilih bukan gambar yang valid."));
+    };
+    gambar.src = urlSementara;
+  });
+}
+
+async function unggahFotoDariInput(elBerkas, elTeks, elPratinjau, elStatus) {
+  const file = elBerkas.files && elBerkas.files[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    elStatus.textContent = "Berkas yang dipilih bukan gambar.";
+    elStatus.className = "f-foto-status f-foto-status--galat";
+    elBerkas.value = "";
+    return;
+  }
+  elStatus.textContent = "Mengecilkan & mengunggah foto...";
+  elStatus.className = "f-foto-status";
+  try {
+    const { dataBase64, tipeMime } = await kecilkanFoto(file);
+    const hasil = await panggilPost({ aksi: "unggahFoto", namaAsli: file.name, tipeMime, dataBase64 });
+    elTeks.value = hasil.url;
+    elPratinjau.src = hasil.url;
+    elPratinjau.hidden = false;
+    elStatus.textContent = "Foto berhasil diunggah.";
+    elStatus.className = "f-foto-status f-foto-status--ok";
+  } catch (err) {
+    elStatus.textContent = "Gagal mengunggah: " + err.message;
+    elStatus.className = "f-foto-status f-foto-status--galat";
+  } finally {
+    elBerkas.value = "";
+  }
 }
 
 /* ---------- Bangun tampilan ---------- */
@@ -323,6 +405,18 @@ function renderForm() {
       baris.append(elemen("input", { id: idInput, name: kunci, type: "checkbox" }));
     } else if (tipe === ANGKA) {
       baris.append(elemen("input", { id: idInput, name: kunci, type: "number", step: "1" }));
+    } else if (tipe === FOTO) {
+      const inputTeks = elemen("input", {
+        id: idInput,
+        name: kunci,
+        type: "text",
+        placeholder: "Ketik nama berkas di assets/img/, atau unggah foto di sebelah",
+      });
+      const pratinjau = elemen("img", { id: idInput + "-pratinjau", kelas: "f-foto-pratinjau", alt: "", hidden: true });
+      const status = elemen("span", { kelas: "f-foto-status" });
+      const berkas = elemen("input", { type: "file", accept: "image/*" });
+      berkas.addEventListener("change", () => unggahFotoDariInput(berkas, inputTeks, pratinjau, status));
+      baris.append(inputTeks, elemen("div", { kelas: "f-foto-alat" }, berkas, status), pratinjau);
     } else {
       baris.append(elemen("input", { id: idInput, name: kunci, type: "text" }));
     }
@@ -350,6 +444,17 @@ function isiFormDariData(data) {
       input.checked = v === "TRUE" || v === "1" || v === "YA";
     } else {
       input.value = data[kunci] != null ? data[kunci] : "";
+      if (tipe === FOTO) {
+        const pratinjau = $("#f-" + kunci + "-pratinjau");
+        const jalur = jalurFotoTampil(input.value);
+        if (pratinjau && jalur) {
+          pratinjau.src = jalur;
+          pratinjau.hidden = false;
+        } else if (pratinjau) {
+          pratinjau.hidden = true;
+          pratinjau.removeAttribute("src");
+        }
+      }
     }
   });
 }

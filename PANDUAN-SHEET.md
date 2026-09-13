@@ -202,10 +202,15 @@ kosongkan untuk memakai WA desa), `foto`, `fotoLokasi`, `penilaian`,
 
 ## Yang tetap tidak lewat Sheet
 
-**Foto.** Sheet hanya menyimpan *nama berkas* fotonya (contoh:
-`gabin-tape-original.jpg`). Fotonya sendiri tetap harus diunggah ke folder
-`assets/img/` di GitHub seperti biasa (lihat `PANDUAN-UPDATE.md` bagian
-"Menambah foto"). Sheet tidak bisa menyimpan berkas gambar.
+**Foto (kalau diedit langsung di Sheet, tanpa form admin).** Kolomnya
+cuma menyimpan *nama berkas* (contoh: `gabin-tape-original.jpg`) atau URL
+gambar penuh -- bukan berkas gambarnya sendiri (Sheet tidak bisa menyimpan
+berkas gambar). Kalau isinya nama berkas, fotonya harus sudah ada di folder
+`assets/img/` di GitHub (lihat `PANDUAN-UPDATE.md` bagian "Menambah
+foto"). Kalau lewat form admin (`admin.html`), ada cara yang jauh lebih
+gampang: unggah foto langsung dari form, otomatis tersimpan ke Google
+Drive dan kolomnya terisi URL-nya sendiri -- lihat `PANDUAN-ADMIN.md`
+bagian "Mengunggah foto lewat form admin".
 
 ## Sangat penting: kolom nomor WhatsApp
 

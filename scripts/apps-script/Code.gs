@@ -29,6 +29,11 @@
      KATA_SANDI admin -- tapi selalu mencocokkan ulang slug+kode ke tab
      AKSES_UMKM di server, tidak pernah percaya begitu saja state di
      peramban pemanggil.
+   - Unggah foto (unggahFoto) WAJIB kata sandi admin (sama seperti
+     tambah/ubah/hapus) -- foto disimpan ke Google Drive (bukan ke
+     GitHub), lalu URL Drive-nya yang dituliskan ke kolom "foto" di
+     Sheet. Lihat PANDUAN-ADMIN.md untuk penjelasan kenapa Drive, bukan
+     commit langsung ke assets/img/ di GitHub.
    ============================================================ */
 
 var TAB_DIIZINKAN = ["UMKM", "PRODUK", "WISATA", "ULASAN", "PROMO", "AKSES_UMKM"];
@@ -122,6 +127,9 @@ function doPost(e) {
     if (isi.aksi === "cekSandi") return keluaran({ ok: true });
     if (isi.aksi === "bacaStatistik") {
       return keluaran({ ok: true, data: agregasiStatistik() });
+    }
+    if (isi.aksi === "unggahFoto") {
+      return keluaran(unggahFoto(isi.namaAsli, isi.tipeMime, isi.dataBase64));
     }
     if (TAB_DIIZINKAN.indexOf(isi.tab) === -1) {
       return keluaran({ galat: "Tab '" + isi.tab + "' tidak dikenal." });
@@ -383,4 +391,52 @@ function simpanPromoUntukSlug(slug, teks, aktif) {
     lembar.getRange(lembar.getLastRow() + 1, 1, 1, judul.length).setValues([nilaiBaris]);
   }
   return { ok: true, pesan: "Promo disimpan." };
+}
+
+/* ---------- Unggah foto (admin.js -> Google Drive) ---------- */
+
+// Diukur SETELAH didekode dari base64 (bukan ukuran teks base64-nya,
+// yang kira-kira 37% lebih besar). admin.js sudah mengecilkan foto di
+// peramban sebelum mengirim, jadi batas ini praktis cuma jaring
+// pengaman kalau aksi ini dipanggil dari luar admin.js.
+var UKURAN_FOTO_MAKS = 6 * 1024 * 1024; // 6 MB
+
+var TIPE_FOTO_DIIZINKAN = ["image/jpeg", "image/png", "image/webp"];
+
+function unggahFoto(namaAsli, tipeMime, dataBase64) {
+  if (TIPE_FOTO_DIIZINKAN.indexOf(tipeMime) === -1) {
+    throw new Error("Jenis berkas '" + tipeMime + "' tidak didukung -- pakai JPG, PNG, atau WEBP.");
+  }
+  if (!dataBase64) throw new Error("Tidak ada data foto yang dikirim.");
+  var bytes = Utilities.base64Decode(dataBase64);
+  if (bytes.length > UKURAN_FOTO_MAKS) {
+    throw new Error("Ukuran foto terlalu besar (maksimum 6 MB setelah dikecilkan).");
+  }
+  var namaBersih = String(namaAsli || "foto")
+    .toLowerCase()
+    .replace(/[^a-z0-9.-]+/g, "-");
+  var namaBerkas = Date.now() + "-" + namaBersih;
+  var blob = Utilities.newBlob(bytes, tipeMime, namaBerkas);
+  var berkas = folderFotoKatalog().createFile(blob);
+  berkas.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return { ok: true, url: "https://drive.google.com/uc?export=view&id=" + berkas.getId() };
+}
+
+// Folder Drive tempat semua foto katalog disimpan, dibuat sekali lalu
+// ID-nya disimpan di Script Properties -- supaya tidak membuat folder
+// baru setiap kali unggah, dan supaya admin bisa membuka foldernya
+// langsung dari Drive kalau perlu (lihat PANDUAN-ADMIN.md).
+function folderFotoKatalog() {
+  var properti = PropertiesService.getScriptProperties();
+  var id = properti.getProperty("FOLDER_FOTO_ID");
+  if (id) {
+    try {
+      return DriveApp.getFolderById(id);
+    } catch (err) {
+      // Folder lama sudah dihapus/dipindah dari Drive -- buat baru di bawah.
+    }
+  }
+  var folder = DriveApp.createFolder("Katalog UMKM Sadomas - Foto");
+  properti.setProperty("FOLDER_FOTO_ID", folder.getId());
+  return folder;
 }
