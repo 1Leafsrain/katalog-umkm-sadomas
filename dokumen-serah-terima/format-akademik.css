@@ -1,0 +1,269 @@
+/* ============================================================
+   Format akademik Indonesia untuk dokumen serah terima (dibaca
+   ekstensi VS Code "Markdown PDF" / yzane.markdown-pdf).
+
+   Margin halaman (4 cm atas & kiri, 3 cm kanan & bawah) DIATUR di
+   .vscode/settings.json (markdown-pdf.margin.*), BUKAN di sini --
+   Puppeteer (mesin ekspor PDF ekstensi ini) mengabaikan margin lewat
+   @page CSS kalau opsi margin.* sudah diisi di settings, jadi jangan
+   tambahkan aturan @page { margin: ... } di berkas ini.
+
+   Font: Times New Roman 12pt, spasi 1,5, rata kiri-kanan, indentasi
+   baris pertama tiap paragraf -- format baku makalah/laporan KKM.
+   ============================================================ */
+
+body {
+  font-family: "Times New Roman", Times, "Liberation Serif", serif !important;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: #000000;
+  text-align: justify;
+}
+
+p {
+  margin: 0 0 0 0;
+  padding-bottom: 12pt;
+  text-indent: 1.25cm;
+  text-align: justify;
+  orphans: 2;
+  widows: 2;
+}
+
+/* BAB -- selalu mulai di halaman baru, judul di tengah, huruf besar semua */
+h1 {
+  font-size: 14pt;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  text-indent: 0;
+  margin: 0 0 4pt 0;
+  page-break-before: always;
+  letter-spacing: 0.05em;
+}
+/* Judul BAB (baris kedua, tepat di bawah "BAB I" dst.) */
+h2 {
+  font-size: 14pt;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  text-indent: 0;
+  margin: 0 0 24pt 0;
+}
+
+/* Sub-bab, misalnya "1.1 Latar Belakang" */
+h3 {
+  font-size: 12pt;
+  font-weight: bold;
+  text-align: left;
+  text-indent: 0;
+  margin: 18pt 0 6pt 0;
+}
+
+/* Anak sub-bab (jarang dipakai, tapi disediakan) */
+h4 {
+  font-size: 12pt;
+  font-weight: bold;
+  font-style: italic;
+  text-align: left;
+  text-indent: 0;
+  margin: 12pt 0 6pt 0;
+}
+
+ol,
+ul {
+  margin: 0 0 12pt 1.25cm;
+  padding: 0;
+  text-align: justify;
+}
+li {
+  margin-bottom: 6pt;
+  padding-left: 4pt;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 6pt 0 14pt 0;
+  font-size: 12pt;
+}
+th,
+td {
+  border: 1pt solid #000000;
+  padding: 6pt 8pt;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  font-weight: bold;
+  background: #f2f2f2;
+}
+
+code {
+  font-family: "Courier New", monospace;
+  font-size: 11pt;
+  background: #f2f2f2;
+  padding: 0 3pt;
+}
+
+hr {
+  border: none;
+  border-top: 1pt solid #000000;
+  margin: 14pt 0;
+}
+
+blockquote {
+  border-left: 3pt solid #000000;
+  margin: 12pt 0 12pt 0;
+  padding: 2pt 0 2pt 14pt;
+  font-style: italic;
+  text-indent: 0;
+}
+
+strong {
+  font-weight: bold;
+}
+
+/* Cegah tautan otomatis (linkify) tampil biru/bergaris bawah -- alamat
+   situs di dokumen ini disebut sebagai teks biasa, bukan tautan klik. */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---------- Halaman sampul & bagian yang TIDAK boleh diindentasi ---------- */
+.sampul,
+.sampul p,
+.tanpa-indent {
+  text-indent: 0 !important;
+}
+.sampul {
+  text-align: center;
+  page-break-after: always;
+}
+.sampul .lambang {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 24pt;
+  display: block;
+  border: 2pt solid #000;
+  border-radius: 50%;
+}
+.sampul .jenis {
+  font-size: 13pt;
+  letter-spacing: 0.16em;
+  margin-bottom: 18pt;
+}
+.sampul .judul {
+  font-size: 16pt;
+  font-weight: bold;
+  text-transform: uppercase;
+  line-height: 1.5;
+  margin: 0 auto 18pt;
+  max-width: 13cm;
+}
+.sampul .garis {
+  width: 4cm;
+  border: none;
+  border-top: 1.5pt solid #000;
+  margin: 18pt auto;
+}
+.sampul .rangka {
+  font-size: 12pt;
+  line-height: 1.6;
+  margin: 0 auto 30pt;
+  max-width: 11cm;
+}
+.sampul .isian-blok {
+  font-size: 12pt;
+  line-height: 2.1;
+  margin-bottom: 40pt;
+}
+.sampul .garis-isi {
+  display: inline-block;
+  border-bottom: 1pt dotted #000;
+  min-width: 8cm;
+}
+.sampul .tahun {
+  font-size: 12pt;
+  font-weight: bold;
+  line-height: 1.8;
+}
+
+/* ---------- Kata Pengantar / Daftar Isi: judul halaman rata tengah ---------- */
+.judul-halaman {
+  text-align: center;
+  font-size: 14pt;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 0 0 24pt 0;
+}
+
+/* ---------- Daftar Isi: baris dengan nomor halaman rata kanan ---------- */
+.doi-baris {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 6pt;
+  text-indent: 0;
+}
+.doi-baris.bab {
+  font-weight: bold;
+  margin-top: 10pt;
+}
+.doi-baris.sub {
+  padding-left: 1.1cm;
+  font-weight: normal;
+}
+.doi-hal {
+  float: right;
+}
+
+/* ---------- Kotak isian tanda tangan / blangko ---------- */
+.isian {
+  display: inline-block;
+  min-width: 3.5cm;
+  border-bottom: 1pt dotted #000;
+  text-indent: 0;
+}
+.isian.lebar {
+  min-width: 6cm;
+}
+
+.kotak-catatan {
+  border: 1pt solid #000;
+  padding: 10pt 12pt;
+  margin: 6pt 0 14pt 0;
+  font-size: 11.5pt;
+  text-indent: 0;
+}
+.kotak-catatan b {
+  display: block;
+  text-transform: uppercase;
+  font-size: 10.5pt;
+  letter-spacing: 0.04em;
+  margin-bottom: 4pt;
+}
+
+.ttd-grid {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 24pt;
+}
+.ttd-grid td {
+  border: none;
+  text-align: center;
+  vertical-align: top;
+  width: 50%;
+  padding: 0 12pt;
+}
+.ttd-grid .peran {
+  font-size: 11.5pt;
+  margin-bottom: 60pt;
+}
+.ttd-grid .garis {
+  border-top: 1pt solid #000;
+  padding-top: 4pt;
+  font-weight: bold;
+}
+.ttd-grid .id {
+  font-size: 11pt;
+}
