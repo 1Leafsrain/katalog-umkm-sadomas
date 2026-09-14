@@ -191,7 +191,7 @@ const UMKM = [
     "jamBuka": "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     "pengiriman": "GANTI: contoh Ambil di tempat, kirim dalam kota",
     "fotoLokasi": "",
-    "deskripsi": "Kerupuk dari kulit sapi pilihan, direbus lalu dijemur sebelum digoreng renyah. Diproduksi rumahan dengan merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT. Dijual mentah maupun siap makan.",
+    "deskripsi": "Kerupuk dari kulit sapi pilihan, direbus lalu dijemur sebelum digoreng renyah. Diproduksi rumahan dengan merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT. Tersedia beberapa ukuran kemasan, dari bungkus kecil sampai 1,5 kilogram.",
     "promo": {
       "teks": "",
       "aktif": false
@@ -707,34 +707,138 @@ const PRODUK = [
     ]
   },
   {
-    "slug": "kerupuk-kulit-sapi-mentah",
-    "nama": "Kerupuk Kulit Sapi Mentah",
+    "slug": "kerupuk-kulit-sapi-pack-panjang",
+    "nama": "Kerupuk Kulit Sapi Pack Panjang",
     "umkm": "kerupuk-kulit-sapi-sadomas",
     "kategori": "kuliner",
-    "harga": "GANTI: kisaran harga",
-    "satuan": "per kilogram",
-    "foto": "",
+    "harga": "Rp12.500",
+    "satuan": "per pack",
+    "foto": "kerupuk-kulit-1.jpg",
     "penilaian": 0,
-    "galeri": [],
+    "galeri": [
+      "kerupuk-kulit-3.jpg"
+    ],
     "ulasan": [],
     "unggulan": false,
-    "deskripsi": "Kerupuk kulit sapi yang sudah direbus dan dijemur kering, siap digoreng sendiri di rumah.",
+    "deskripsi": "Sudah digoreng renyah, dikemas dalam pack panjang. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28.",
     "rincian": [
       [
         "Bahan utama",
         "Kulit sapi pilihan"
       ],
       [
-        "Berat",
-        "1 kilogram"
+        "Merek",
+        "RR Ratu"
       ],
       [
-        "Daya tahan",
-        "GANTI: berapa lama"
+        "Sertifikat",
+        "Halal Indonesia, P-IRT 2013210010707-28"
+      ],
+      [
+        "Harga grosir",
+        "Rp12.500/pack untuk pembelian minimal 10 pak"
+      ]
+    ]
+  },
+  {
+    "slug": "kerupuk-kulit-sapi-pack",
+    "nama": "Kerupuk Kulit Sapi Pack",
+    "umkm": "kerupuk-kulit-sapi-sadomas",
+    "kategori": "kuliner",
+    "harga": "Rp16.000",
+    "satuan": "per pack",
+    "foto": "kerupuk-kulit-1.jpg",
+    "penilaian": 0,
+    "galeri": [
+      "kerupuk-kulit-3.jpg"
+    ],
+    "ulasan": [],
+    "unggulan": false,
+    "deskripsi": "Sudah digoreng renyah, dikemas dalam pack. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28.",
+    "rincian": [
+      [
+        "Bahan utama",
+        "Kulit sapi pilihan"
+      ],
+      [
+        "Merek",
+        "RR Ratu"
+      ],
+      [
+        "Sertifikat",
+        "Halal Indonesia, P-IRT 2013210010707-28"
       ],
       [
         "Minimal pesan",
-        "GANTI: jumlah minimal"
+        "1 pack"
+      ]
+    ]
+  },
+  {
+    "slug": "kerupuk-kulit-sapi-500gr",
+    "nama": "Kerupuk Kulit Sapi 500 Gram",
+    "umkm": "kerupuk-kulit-sapi-sadomas",
+    "kategori": "kuliner",
+    "harga": "Rp55.000",
+    "satuan": "per 500 gram",
+    "foto": "kerupuk-kulit-1.jpg",
+    "penilaian": 0,
+    "galeri": [
+      "kerupuk-kulit-3.jpg"
+    ],
+    "ulasan": [],
+    "unggulan": false,
+    "deskripsi": "Sudah digoreng renyah, dikemas dalam ukuran 500 gram. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28.",
+    "rincian": [
+      [
+        "Bahan utama",
+        "Kulit sapi pilihan"
+      ],
+      [
+        "Merek",
+        "RR Ratu"
+      ],
+      [
+        "Sertifikat",
+        "Halal Indonesia, P-IRT 2013210010707-28"
+      ],
+      [
+        "Berat",
+        "500 gram"
+      ]
+    ]
+  },
+  {
+    "slug": "kerupuk-kulit-sapi-1-5kg",
+    "nama": "Kerupuk Kulit Sapi 1,5 Kilogram",
+    "umkm": "kerupuk-kulit-sapi-sadomas",
+    "kategori": "kuliner",
+    "harga": "Rp170.000",
+    "satuan": "per 1,5 kilogram",
+    "foto": "kerupuk-kulit-1.jpg",
+    "penilaian": 0,
+    "galeri": [
+      "kerupuk-kulit-3.jpg"
+    ],
+    "ulasan": [],
+    "unggulan": false,
+    "deskripsi": "Sudah digoreng renyah, dikemas dalam ukuran 1,5 kilogram, cocok untuk stok lebih banyak. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28.",
+    "rincian": [
+      [
+        "Bahan utama",
+        "Kulit sapi pilihan"
+      ],
+      [
+        "Merek",
+        "RR Ratu"
+      ],
+      [
+        "Sertifikat",
+        "Halal Indonesia, P-IRT 2013210010707-28"
+      ],
+      [
+        "Berat",
+        "1,5 kilogram"
       ]
     ]
   },
