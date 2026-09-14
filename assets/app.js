@@ -350,7 +350,7 @@ function susunKepala() {
     '<header class="kepala"><div class="blok__isi kepala__isi">' +
     '<a class="merek" href="index.html">' +
     '<span class="merek__lambang" aria-hidden="true">' +
-    IKON.daun +
+    '<img src="assets/img/logo_sadomas_warna.png" alt="" loading="eager">' +
     "</span>" +
     '<span class="merek__teks"><span class="merek__nama">' +
     aman(DESA.nama.toUpperCase()) +
@@ -442,7 +442,7 @@ function susunKaki() {
     '<div class="kaki__merek">' +
     '<div class="merek">' +
     '<span class="kaki__lambang" aria-hidden="true">' +
-    IKON.daun +
+    '<img src="assets/img/logo_sadomas_warna.png" alt="" loading="lazy">' +
     "</span>" +
     '<span class="merek__teks"><span class="kaki__nama">DESA ' +
     aman(DESA.nama.toUpperCase()) +

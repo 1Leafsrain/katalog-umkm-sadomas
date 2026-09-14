@@ -147,18 +147,10 @@ svg {
   flex-shrink: 0;
 }
 
-.merek__lambang {
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  background: var(--hijau);
-  color: #fff;
-  display: grid;
-  place-items: center;
-}
-.merek__lambang svg {
-  width: 20px;
-  height: 20px;
+.merek__lambang img {
+  height: 44px;
+  width: auto;
+  display: block;
 }
 
 .merek__teks {
@@ -1311,18 +1303,10 @@ svg {
   flex-direction: column;
   gap: 24px;
 }
-.kaki__lambang {
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  background: #fff;
-  color: var(--hijau);
-  display: grid;
-  place-items: center;
-}
-.kaki__lambang svg {
-  width: 20px;
-  height: 20px;
+.kaki__lambang img {
+  height: 44px;
+  width: auto;
+  display: block;
 }
 .kaki__nama {
   font-weight: 800;
