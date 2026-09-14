@@ -95,6 +95,77 @@
         font-size: 0.85rem;
         color: var(--redup);
       }
+      .f-foto-alat {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .f-foto-status {
+        font-size: 0.82rem;
+        color: var(--redup);
+      }
+      .f-foto-status--ok {
+        color: var(--hijau);
+      }
+      .f-foto-status--galat {
+        color: #b3261e;
+      }
+      .f-foto-pratinjau {
+        display: block;
+        margin-top: 6px;
+        max-width: 160px;
+        max-height: 160px;
+        border-radius: 8px;
+        border: 1px solid var(--garis);
+        object-fit: cover;
+      }
+      button.sekunder {
+        background: var(--netral);
+        color: var(--teks);
+      }
+      button.tombol-bahaya {
+        background: #b3261e;
+        color: #fff;
+      }
+      .form-baris-tombol {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+      .daftar__aksi {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .kosong-kecil {
+        color: var(--redup);
+        font-size: 0.9rem;
+      }
+      .kisi-produk-saya {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 18px;
+      }
+      .kartu-produk-saya .kartu__gambar {
+        height: 170px;
+      }
+      .kartu-produk-saya .kartu__badan {
+        padding: 16px 18px;
+        gap: 8px;
+      }
+      .kartu-produk-saya .kartu__baris {
+        align-items: center;
+      }
+      .kartu-produk-saya .kartu__kaki {
+        padding: 14px 18px;
+        justify-content: flex-end;
+      }
+      .tanda--kecil {
+        font-size: 10px;
+        padding: 2px 7px;
+      }
     </style>
   </head>
 
@@ -102,9 +173,10 @@
     <p><a href="index.html">&larr; Kembali ke situs</a></p>
     <h1>Toko Saya</h1>
     <p class="catatan">
-      Lihat berapa orang melihat toko Anda &amp; mengeklik WhatsApp, dan
-      pasang promo yang tampil di halaman toko Anda sendiri. Kode akses
-      didapat dari pengurus desa/Karang Taruna.
+      Lihat berapa orang melihat toko Anda &amp; mengeklik WhatsApp, ubah
+      profil dan produk toko Anda sendiri, dan pasang promo yang tampil di
+      halaman toko Anda. Kode akses didapat dari pengurus desa/Karang
+      Taruna.
     </p>
 
     <fieldset id="fieldset-masuk">
@@ -136,9 +208,7 @@
     <fieldset id="fieldset-promo" hidden>
       <legend>Promo Toko</legend>
       <p class="catatan">
-        Tampil di halaman profil toko Anda. Perubahan tampil di situs sekitar
-        30-60 menit setelah disimpan (menunggu sinkron terjadwal), bukan
-        langsung seketika.
+        Tampil di halaman profil toko Anda hampir seketika setelah disimpan.
       </p>
       <form id="form-promo">
         <div class="f-baris">
@@ -154,8 +224,126 @@
       <p class="status" id="promo-status"></p>
     </fieldset>
 
+    <fieldset id="fieldset-profil" hidden>
+      <legend>Profil Toko</legend>
+      <p class="catatan">
+        Perubahan tampil di katalog publik hampir seketika. Nama usaha bisa
+        diubah, tapi alamat halaman toko (slug) tetap sama.
+      </p>
+      <form id="form-profil">
+        <div class="f-baris">
+          <label for="pf-nama">Nama usaha</label>
+          <input id="pf-nama" type="text" required />
+        </div>
+        <div class="f-baris">
+          <label for="pf-kategori">Kategori (kuliner / pertanian / perikanan / kerajinan)</label>
+          <input id="pf-kategori" type="text" required />
+        </div>
+        <div class="f-baris">
+          <label for="pf-pemilik">Nama pemilik</label>
+          <input id="pf-pemilik" type="text" />
+        </div>
+        <div class="f-baris">
+          <label for="pf-wa">Nomor WhatsApp (awalan 62, contoh 6281234567890)</label>
+          <input id="pf-wa" type="text" />
+        </div>
+        <div class="f-baris">
+          <label for="pf-alamat">Alamat</label>
+          <input id="pf-alamat" type="text" />
+        </div>
+        <div class="f-baris">
+          <label for="pf-jamBuka">Jam buka</label>
+          <input id="pf-jamBuka" type="text" />
+        </div>
+        <div class="f-baris">
+          <label for="pf-pengiriman">Pengiriman</label>
+          <input id="pf-pengiriman" type="text" />
+        </div>
+        <div class="f-baris">
+          <label for="pf-foto">Foto utama</label>
+          <input id="pf-foto" type="text" placeholder="Ketik nama berkas, atau unggah foto di sebelah" />
+          <div class="f-foto-alat">
+            <input type="file" accept="image/*" id="pf-foto-berkas" />
+            <span class="f-foto-status" id="pf-foto-status"></span>
+          </div>
+          <img class="f-foto-pratinjau" id="pf-foto-pratinjau" alt="" hidden />
+        </div>
+        <div class="f-baris">
+          <label for="pf-fotoLokasi">Foto lokasi</label>
+          <input id="pf-fotoLokasi" type="text" placeholder="Ketik nama berkas, atau unggah foto di sebelah" />
+          <div class="f-foto-alat">
+            <input type="file" accept="image/*" id="pf-fotoLokasi-berkas" />
+            <span class="f-foto-status" id="pf-fotoLokasi-status"></span>
+          </div>
+          <img class="f-foto-pratinjau" id="pf-fotoLokasi-pratinjau" alt="" hidden />
+        </div>
+        <div class="f-baris">
+          <label for="pf-deskripsi">Deskripsi</label>
+          <textarea id="pf-deskripsi" rows="4" required></textarea>
+        </div>
+        <button type="submit">Simpan Profil</button>
+      </form>
+      <p class="status" id="profil-status"></p>
+    </fieldset>
+
+    <fieldset id="fieldset-produk" hidden>
+      <legend>Produk Saya</legend>
+      <div class="form-baris-tombol" style="margin-bottom:12px">
+        <button type="button" id="btn-tambah-produk">+ Tambah Produk</button>
+      </div>
+      <div id="daftar-produk"></div>
+
+      <form id="form-produk" hidden style="margin-top:16px; border-top:1px solid var(--garis); padding-top:16px">
+        <p class="catatan" id="produk-judul-form">Tambah produk baru</p>
+        <div class="f-baris">
+          <label for="pr-slug">Slug (huruf kecil, pakai -, tidak boleh sama dengan produk lain)</label>
+          <input id="pr-slug" type="text" required />
+        </div>
+        <div class="f-baris">
+          <label for="pr-nama">Nama produk</label>
+          <input id="pr-nama" type="text" required />
+        </div>
+        <div class="f-baris">
+          <label for="pr-kategori">Kategori</label>
+          <input id="pr-kategori" type="text" required />
+        </div>
+        <div class="f-baris">
+          <label for="pr-harga">Harga (kisaran, contoh Rp15.000 – Rp18.000)</label>
+          <input id="pr-harga" type="text" />
+        </div>
+        <div class="f-baris">
+          <label for="pr-satuan">Satuan (contoh per kotak isi 10 buah)</label>
+          <input id="pr-satuan" type="text" />
+        </div>
+        <div class="f-baris">
+          <label for="pr-foto">Foto utama</label>
+          <input id="pr-foto" type="text" placeholder="Ketik nama berkas, atau unggah foto di sebelah" />
+          <div class="f-foto-alat">
+            <input type="file" accept="image/*" id="pr-foto-berkas" />
+            <span class="f-foto-status" id="pr-foto-status"></span>
+          </div>
+          <img class="f-foto-pratinjau" id="pr-foto-pratinjau" alt="" hidden />
+        </div>
+        <div class="baris-inline" style="margin-bottom:12px">
+          <input id="pr-unggulan" type="checkbox" />
+          <label for="pr-unggulan">Tampilkan di beranda sebagai produk unggulan</label>
+        </div>
+        <div class="f-baris">
+          <label for="pr-deskripsi">Deskripsi</label>
+          <textarea id="pr-deskripsi" rows="3" required></textarea>
+        </div>
+        <div class="form-baris-tombol">
+          <button type="submit">Simpan Produk</button>
+          <button type="button" class="sekunder" id="btn-batal-produk">Batal</button>
+          <button type="button" class="tombol-bahaya" id="btn-hapus-produk" hidden>Hapus</button>
+        </div>
+      </form>
+      <p class="status" id="produk-status"></p>
+    </fieldset>
+
     <script src="data/katalog.js"></script>
     <script src="assets/grafik.js"></script>
+    <script src="assets/foto-util.js"></script>
     <script src="assets/toko-saya.js"></script>
   </body>
 </html>
