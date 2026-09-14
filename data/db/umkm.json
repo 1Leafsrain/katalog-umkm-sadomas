@@ -42,20 +42,6 @@
     "deskripsi": "Emping melinjo tipis dari buah melinjo kebun sendiri. Tersedia mentah untuk digoreng di rumah dan matang siap santap dengan pilihan rasa asin atau pedas."
   },
   {
-    "slug": "bibit-palawija",
-    "nama": "Kebun Bibit Palawija",
-    "kategori": "pertanian",
-    "pemilik": "GANTI: nama pemilik",
-    "wa": "GANTI_NOMOR_WA",
-    "alamat": "GANTI: blok / RT / RW",
-    "foto": "bibit-jagung.jpg",
-    "penilaian": 0,
-    "jamBuka": "Setiap hari, 08.00-17.00 WIB",
-    "pengiriman": "Ambil di tempat",
-    "fotoLokasi": "",
-    "deskripsi": "Pembibitan palawija milik warga: jagung, kacang tanah, dan sayuran dataran menengah. Melayani pembelian per tray untuk petani maupun pekarangan rumah."
-  },
-  {
     "slug": "buah-musiman-sadomas",
     "nama": "Buah Musiman Sadomas",
     "kategori": "pertanian",

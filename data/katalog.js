@@ -126,24 +126,6 @@ const UMKM = [
     }
   },
   {
-    "slug": "bibit-palawija",
-    "nama": "Kebun Bibit Palawija",
-    "kategori": "pertanian",
-    "pemilik": "GANTI: nama pemilik",
-    "wa": "GANTI_NOMOR_WA",
-    "alamat": "GANTI: blok / RT / RW",
-    "foto": "bibit-jagung.jpg",
-    "penilaian": 0,
-    "jamBuka": "Setiap hari, 08.00-17.00 WIB",
-    "pengiriman": "Ambil di tempat",
-    "fotoLokasi": "",
-    "deskripsi": "Pembibitan palawija milik warga: jagung, kacang tanah, dan sayuran dataran menengah. Melayani pembelian per tray untuk petani maupun pekarangan rumah.",
-    "promo": {
-      "teks": "",
-      "aktif": false
-    }
-  },
-  {
     "slug": "buah-musiman-sadomas",
     "nama": "Buah Musiman Sadomas",
     "kategori": "pertanian",
@@ -607,70 +589,6 @@ const PRODUK = [
       [
         "Minimal pesan",
         "3 bungkus"
-      ]
-    ]
-  },
-  {
-    "slug": "bibit-jagung",
-    "nama": "Bibit Jagung Siap Tanam",
-    "umkm": "bibit-palawija",
-    "kategori": "pertanian",
-    "harga": "Rp25.000 – Rp35.000",
-    "satuan": "per tray isi 50 lubang",
-    "foto": "bibit-jagung.jpg",
-    "penilaian": 0,
-    "galeri": [],
-    "ulasan": [],
-    "unggulan": false,
-    "deskripsi": "Bibit umur dua minggu, sudah berdaun tiga sampai empat helai. Siap dipindah ke lahan. Pemesanan sebaiknya seminggu sebelum tanam.",
-    "rincian": [
-      [
-        "Umur bibit",
-        "14 hari"
-      ],
-      [
-        "Isi",
-        "50 lubang per tray"
-      ],
-      [
-        "Pesan minimal",
-        "2 tray"
-      ],
-      [
-        "Catatan",
-        "Perlu dipesan seminggu sebelumnya"
-      ]
-    ]
-  },
-  {
-    "slug": "bibit-sayuran",
-    "nama": "Bibit Sayuran Pekarangan",
-    "umkm": "bibit-palawija",
-    "kategori": "pertanian",
-    "harga": "Rp2.000 – Rp3.000",
-    "satuan": "per polibag",
-    "foto": "sayuran-kebun.jpg",
-    "penilaian": 0,
-    "galeri": [],
-    "ulasan": [],
-    "unggulan": false,
-    "deskripsi": "Cabai, terong, dan tomat dalam polibag kecil untuk ditanam di pekarangan rumah. Cocok untuk program pekarangan pangan warga.",
-    "rincian": [
-      [
-        "Jenis",
-        "Cabai, terong, tomat"
-      ],
-      [
-        "Wadah",
-        "Polibag 10 cm"
-      ],
-      [
-        "Pesan minimal",
-        "10 polibag"
-      ],
-      [
-        "Catatan",
-        "Jenis menyesuaikan ketersediaan"
       ]
     ]
   },

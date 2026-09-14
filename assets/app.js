@@ -603,28 +603,6 @@ function kartuWisata(w) {
 
 /* ---------- Bagian bersama ---------- */
 
-function bagianTestimoni() {
-  const t = TESTIMONI;
-  if (!t || !t.teks) return "";
-  return (
-    '<section class="blok bagian--hijau"><div class="blok__isi testimoni">' +
-    gambar(t.foto, t.nama, "testimoni__foto", "Foto warga") +
-    '<div class="testimoni__kanan">' +
-    '<span class="testimoni__kutip" aria-hidden="true">' +
-    IKON.kutip +
-    "</span>" +
-    '<blockquote class="testimoni__teks">' +
-    aman(t.teks) +
-    "</blockquote>" +
-    '<div><div class="testimoni__nama">' +
-    aman(t.nama) +
-    '</div><div class="testimoni__peran">' +
-    aman(t.peran) +
-    "</div></div>" +
-    "</div></div></section>"
-  );
-}
-
 function bagianAjakan() {
   const a = DESA.ajakan || {};
   const tombolWa = nomorSiap(DESA.waDesa)
@@ -807,7 +785,6 @@ function halamanBeranda() {
       "Ganti kotak ini dengan foto balai desa (assets/img/profil.jpg)",
     ) +
     "</div></section>" +
-    bagianTestimoni() +
     bagianAjakan();
 }
 
