@@ -398,7 +398,6 @@ svg {
   overflow: hidden;
   color: var(--hijau);
   text-align: center;
-  padding: 12px;
 }
 .gambar img {
   width: 100%;
@@ -406,6 +405,7 @@ svg {
   object-fit: cover;
 }
 .gambar__label {
+  padding: 12px;
   font-size: 13px;
   font-weight: 600;
   opacity: 0.6;
