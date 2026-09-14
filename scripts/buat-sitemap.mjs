@@ -18,7 +18,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import vm from "node:vm";
 
-const BASE_URL = "https://1leafsrain.github.io/katalog-umkm-sadomas";
+const BASE_URL = "https://umkmdesasadomas.web.id";
 
 const kode = await readFile(new URL("../data/katalog.js", import.meta.url), "utf8");
 const sandbox = {};
