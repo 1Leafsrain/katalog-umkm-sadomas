@@ -28,34 +28,6 @@
     "deskripsi": "Opak beras ketan yang dijemur di halaman rumah dan dibakar di atas bara. Warna merahnya dari bumbu, bukan pewarna. Dijual mentah maupun siap makan."
   },
   {
-    "slug": "keripik-melinjo",
-    "nama": "Keripik Melinjo Sadomas",
-    "kategori": "kuliner",
-    "pemilik": "GANTI: nama pemilik",
-    "wa": "GANTI_NOMOR_WA",
-    "alamat": "GANTI: blok / RT / RW",
-    "foto": "emping-melinjo.jpg",
-    "penilaian": 0,
-    "jamBuka": "Setiap hari, 08.00-17.00 WIB",
-    "pengiriman": "Ambil di tempat",
-    "fotoLokasi": "",
-    "deskripsi": "Emping melinjo tipis dari buah melinjo kebun sendiri. Tersedia mentah untuk digoreng di rumah dan matang siap santap dengan pilihan rasa asin atau pedas."
-  },
-  {
-    "slug": "buah-musiman-sadomas",
-    "nama": "Buah Musiman Sadomas",
-    "kategori": "pertanian",
-    "pemilik": "GANTI: nama pemilik",
-    "wa": "GANTI_NOMOR_WA",
-    "alamat": "GANTI: blok / RT / RW",
-    "foto": "mangga-kebun.jpg",
-    "penilaian": 0,
-    "jamBuka": "Setiap hari, 08.00-17.00 WIB",
-    "pengiriman": "Ambil di tempat",
-    "fotoLokasi": "",
-    "deskripsi": "Mangga, durian, dan picung hasil kebun warga. Karena mengikuti musim, ketersediaan berubah tiap bulan. Tanyakan dulu lewat WhatsApp sebelum memesan."
-  },
-  {
     "slug": "donat-dan-brownies",
     "nama": "Donat & Brownies Sadomas",
     "kategori": "kuliner",
