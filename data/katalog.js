@@ -180,24 +180,6 @@ const UMKM = [
     }
   },
   {
-    "slug": "kebun-sayuran-sadomas",
-    "nama": "Kebun Sayuran Sadomas",
-    "kategori": "pertanian",
-    "pemilik": "GANTI: nama pemilik",
-    "wa": "GANTI_NOMOR_WA",
-    "alamat": "GANTI: blok / RT / RW",
-    "foto": "sayuran-kebun.jpg",
-    "penilaian": 0,
-    "jamBuka": "Setiap hari, 08.00-17.00 WIB",
-    "pengiriman": "Ambil di tempat",
-    "fotoLokasi": "",
-    "deskripsi": "Sayuran segar hasil kebun warga: kol, sawi, cabai, dan tomat, dipanen dari lahan dataran menengah di kaki Gunung Ciremai sesuai pesanan.",
-    "promo": {
-      "teks": "",
-      "aktif": false
-    }
-  },
-  {
     "slug": "jajanan-pasar-bu-yeti",
     "nama": "Jajanan Pasar Bu Yeti",
     "kategori": "kuliner",
@@ -593,38 +575,6 @@ const PRODUK = [
     ]
   },
   {
-    "slug": "mangga-musiman",
-    "nama": "Mangga Kebun Warga",
-    "umkm": "buah-musiman-sadomas",
-    "kategori": "pertanian",
-    "harga": "Rp15.000 – Rp25.000",
-    "satuan": "per kilogram",
-    "foto": "mangga-kebun.jpg",
-    "penilaian": 0,
-    "galeri": [],
-    "ulasan": [],
-    "unggulan": false,
-    "deskripsi": "Mangga hasil kebun warga, dipetik saat pesanan masuk. Ketersediaan mengikuti musim panen, biasanya pertengahan sampai akhir tahun.",
-    "rincian": [
-      [
-        "Musim panen",
-        "Menyesuaikan tahun berjalan"
-      ],
-      [
-        "Berat",
-        "Per kilogram"
-      ],
-      [
-        "Pesan minimal",
-        "3 kilogram"
-      ],
-      [
-        "Catatan",
-        "Tanyakan ketersediaan dulu"
-      ]
-    ]
-  },
-  {
     "slug": "durian-lokal",
     "nama": "Durian Lokal Sadomas",
     "umkm": "buah-musiman-sadomas",
@@ -915,70 +865,6 @@ const PRODUK = [
       [
         "Minimal pesan",
         "1 bungkus"
-      ]
-    ]
-  },
-  {
-    "slug": "sayur-campur-sadomas",
-    "nama": "Paket Sayur Campur",
-    "umkm": "kebun-sayuran-sadomas",
-    "kategori": "pertanian",
-    "harga": "GANTI: kisaran harga",
-    "satuan": "per kilogram",
-    "foto": "sayuran-kebun.jpg",
-    "penilaian": 0,
-    "galeri": [],
-    "ulasan": [],
-    "unggulan": false,
-    "deskripsi": "Campuran sayuran segar hasil kebun sendiri, dipanen sesuai pesanan agar tetap segar sampai ke pembeli.",
-    "rincian": [
-      [
-        "Jenis",
-        "Kol, sawi, cabai, tomat"
-      ],
-      [
-        "Berat",
-        "Per kilogram"
-      ],
-      [
-        "Pesan minimal",
-        "GANTI: jumlah minimal"
-      ],
-      [
-        "Catatan",
-        "Jenis menyesuaikan hasil panen"
-      ]
-    ]
-  },
-  {
-    "slug": "cabai-rawit-sadomas",
-    "nama": "Cabai Rawit Segar",
-    "umkm": "kebun-sayuran-sadomas",
-    "kategori": "pertanian",
-    "harga": "GANTI: kisaran harga",
-    "satuan": "per kilogram",
-    "foto": "sayuran-kebun.jpg",
-    "penilaian": 0,
-    "galeri": [],
-    "ulasan": [],
-    "unggulan": false,
-    "deskripsi": "Cabai rawit hasil kebun warga, dipetik segar sesuai pesanan.",
-    "rincian": [
-      [
-        "Jenis",
-        "Cabai rawit"
-      ],
-      [
-        "Berat",
-        "Per kilogram"
-      ],
-      [
-        "Pesan minimal",
-        "GANTI: jumlah minimal"
-      ],
-      [
-        "Catatan",
-        "Harga mengikuti harga pasar saat panen"
       ]
     ]
   },
