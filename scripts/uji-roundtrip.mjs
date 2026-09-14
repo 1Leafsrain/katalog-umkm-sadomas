@@ -1,13 +1,18 @@
 #!/usr/bin/env node
 /* ============================================================
-   Uji internal (bukan bagian dari alur otomatis): pastikan
-   data/katalog.js -> CSV (katalog-ke-sheet.mjs) -> data lagi
-   (skema.mjs) menghasilkan isi yang SAMA PERSIS dengan aslinya.
+   Uji internal (bukan bagian dari alur otomatis): pastikan alur
+   produksi data/katalog.js yang sesungguhnya -- CSV Sheet OPSIONAL
+   (DESA/TESTIMONI/KATEGORI, lewat katalog-ke-sheet.mjs) + data/db/*.json
+   (UMKM/PRODUK/WISATA/ULASAN/PROMO, lewat katalog-ke-db.mjs) -> dirakit
+   lagi lewat skema.mjs -- menghasilkan isi yang SAMA PERSIS dengan
+   data/katalog.js aslinya.
 
    Ini bukti bahwa skema kolom di skema.mjs tidak kehilangan data.
-   Jalankan setelah mengubah skema.mjs atau katalog-ke-sheet.mjs:
+   Jalankan setelah mengubah skema.mjs, katalog-ke-sheet.mjs, atau
+   katalog-ke-db.mjs:
 
      node scripts/katalog-ke-sheet.mjs
+     node scripts/katalog-ke-db.mjs
      node scripts/uji-roundtrip.mjs
    ============================================================ */
 
@@ -30,15 +35,20 @@ async function bacaCsv(namaBerkas) {
   return barisJadiObjek(uraikanCsv(teks));
 }
 
+async function bacaDb(namaBerkas) {
+  const teks = await readFile(new URL("../data/db/" + namaBerkas, import.meta.url), "utf8");
+  return JSON.parse(teks);
+}
+
 const { data: hasil, catat } = rakitData({
   desaRows: await bacaCsv("DESA.csv"),
   testimoniRows: await bacaCsv("TESTIMONI.csv"),
   kategoriRows: await bacaCsv("KATEGORI.csv"),
-  umkmRows: await bacaCsv("UMKM.csv"),
-  produkRows: await bacaCsv("PRODUK.csv"),
-  ulasanRows: await bacaCsv("ULASAN.csv"),
-  wisataRows: await bacaCsv("WISATA.csv"),
-  promoRows: await bacaCsv("PROMO.csv"),
+  umkmRows: await bacaDb("umkm.json"),
+  produkRows: await bacaDb("produk.json"),
+  ulasanRows: await bacaDb("ulasan.json"),
+  wisataRows: await bacaDb("wisata.json"),
+  promoRows: await bacaDb("promo.json"),
 });
 
 let gagal = false;

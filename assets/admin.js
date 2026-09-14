@@ -1,7 +1,9 @@
 /* ============================================================
-   Form admin: tambah / ubah / hapus data UMKM, PRODUK, WISATA,
-   ULASAN lewat Google Apps Script Web App yang nulis langsung ke
-   Google Sheet. Lihat PANDUAN-ADMIN.md untuk cara memasangnya.
+   Form admin: tambah / ubah / hapus UMKM/Produk/Wisata (ditulis
+   langsung ke GitHub lewat token pribadi admin, lihat SKEMA_TAB di
+   bawah) dan Ulasan/Promo/Kode Akses Toko (lewat Apps Script Web App,
+   tidak ada Google Sheet sama sekali). Lihat PANDUAN-ADMIN.md untuk
+   cara memasangnya.
 
    Dimuat sebagai skrip biasa (bukan <script type="module">) SENGAJA:
    server statis (termasuk kadang GitHub Pages) tidak selalu mengirim
@@ -30,6 +32,23 @@ const AREA = "area";
 const ANGKA = "angka";
 const CENTANG = "centang";
 const FOTO = "foto";
+
+// Tiap tab disimpan di salah satu dari dua tempat -- lihat catatan di
+// atas berkas Code.gs untuk alasan pembagiannya. UMKM/PRODUK/WISATA
+// cuma pernah ditulis admin (yang pegang token GitHub asli), jadi token
+// itu cukup jadi gerbangnya -- ditulis LANGSUNG ke GitHub dari sini,
+// tidak lewat Apps Script sama sekali. ULASAN/PROMO/AKSES_UMKM
+// penulisannya publik/anonim atau lewat kode akses toko -- keduanya
+// wajib divalidasi SERVER dulu (Apps Script), sesuatu yang tidak bisa
+// dilakukan aman lewat token yang tertanam di halaman publik. Tidak
+// ada Google Sheet di jalur mana pun lagi.
+const GITHUB = "github";
+// Ulasan/Promo/Kode Akses masing-masing punya bentuk penyimpanan &
+// pengenal sendiri di Code.gs (berkas GitHub untuk Ulasan/Promo,
+// PropertiesService untuk Kode Akses), jadi tiap tab mendefinisikan
+// sendiri fungsi baca/simpan/hapus/kunci-nya (lihat SKEMA_TAB di
+// bawah) -- semuanya lewat Apps Script Web App, bukan token GitHub.
+const KHUSUS = "khusus";
 
 function kolomGaleri() {
   const hasil = [];
@@ -61,6 +80,8 @@ function kolomRincian() {
 const SKEMA_TAB = {
   UMKM: {
     label: "UMKM",
+    sumber: GITHUB,
+    berkas: "data/db/umkm.json",
     ringkas: (r) => r.nama + " — " + r.slug,
     field: [
       ["slug", "Slug (huruf kecil, pakai -, tidak boleh sama dengan yang lain)", TEKS, true],
@@ -79,6 +100,8 @@ const SKEMA_TAB = {
   },
   PRODUK: {
     label: "Produk",
+    sumber: GITHUB,
+    berkas: "data/db/produk.json",
     ringkas: (r) => r.nama + " — milik " + r.umkm,
     field: [
       ["slug", "Slug (huruf kecil, pakai -, tidak boleh sama dengan yang lain)", TEKS, true],
@@ -97,6 +120,8 @@ const SKEMA_TAB = {
   },
   WISATA: {
     label: "Wisata",
+    sumber: GITHUB,
+    berkas: "data/db/wisata.json",
     ringkas: (r) => r.nama + " — " + r.slug,
     field: [
       ["slug", "Slug (huruf kecil, pakai -, tidak boleh sama dengan yang lain)", TEKS, true],
@@ -116,6 +141,16 @@ const SKEMA_TAB = {
   },
   ULASAN: {
     label: "Ulasan pembeli",
+    sumber: KHUSUS,
+    kunci: (r) => r.id,
+    baca: () => panggilAppsScript({ aksi: "bacaUlasan" }).then((j) => j.data),
+    simpan: (data, sedangDiedit) =>
+      panggilPost(
+        sedangDiedit
+          ? { aksi: "ubahUlasanAdmin", id: sedangDiedit, data }
+          : { aksi: "tambahUlasanAdmin", data },
+      ),
+    hapus: (id) => panggilPost({ aksi: "hapusUlasan", id }),
     ringkas: (r) => r.nama + " tentang " + r.produk + " — “" + String(r.teks || "").slice(0, 40) + "”",
     field: [
       ["produk", "Slug produk yang diulas (harus sama persis)", TEKS, true],
@@ -127,7 +162,12 @@ const SKEMA_TAB = {
   },
   PROMO: {
     label: "Promo per-UMKM",
-    ringkas: (r) => r.slug + (r.aktif && String(r.aktif).toUpperCase() === "TRUE" ? " (aktif)" : " (nonaktif)") + " — " + String(r.teks || "").slice(0, 40),
+    sumber: KHUSUS,
+    kunci: (r) => r.slug,
+    baca: () => panggilPost({ aksi: "bacaPromoAdmin" }).then((j) => j.data),
+    simpan: (data) => panggilPost({ aksi: "simpanPromoAdmin", slug: data.slug, teks: data.teks, aktif: data.aktif }),
+    hapus: (slug) => panggilPost({ aksi: "hapusPromo", slug }),
+    ringkas: (r) => r.slug + (r.aktif ? " (aktif)" : " (nonaktif)") + " — " + String(r.teks || "").slice(0, 40),
     field: [
       ["slug", "Slug UMKM (harus sama persis)", TEKS, true],
       ["teks", "Isi promo", AREA, true],
@@ -136,6 +176,11 @@ const SKEMA_TAB = {
   },
   AKSES_UMKM: {
     label: "Kode akses toko",
+    sumber: KHUSUS,
+    kunci: (r) => r.slug,
+    baca: () => panggilPost({ aksi: "daftarKodeAkses" }).then((j) => j.data),
+    simpan: (data) => panggilPost({ aksi: "simpanKodeAkses", slug: data.slug, kode: data.kode }),
+    hapus: (slug) => panggilPost({ aksi: "hapusKodeAkses", slug }),
     ringkas: (r) => r.slug + " — kode: " + r.kode,
     field: [
       ["slug", "Slug UMKM (harus sama persis)", TEKS, true],
@@ -172,9 +217,15 @@ function simpanPengaturan(p) {
 function nilaiPengaturanAktif() {
   const elUrl = $("#p-url");
   const elSandi = $("#p-sandi");
+  const elPemilik = $("#g-pemilik");
+  const elRepo = $("#g-repo");
+  const elToken = $("#g-token");
   return {
     url: elUrl ? elUrl.value.trim() : "",
     sandi: elSandi ? elSandi.value : "",
+    githubPemilik: elPemilik ? elPemilik.value.trim() : "",
+    githubRepo: elRepo ? elRepo.value.trim() : "",
+    githubToken: elToken ? elToken.value : "",
   };
 }
 
@@ -198,73 +249,163 @@ async function panggilAppsScript(payload) {
   return j;
 }
 
-// Sandi selalu dikirim (bukan cuma untuk tab yang wajib) -- perlu
-// supaya tab AKSES_UMKM (kode privat tiap toko) bisa terbaca admin.
-// Untuk tab lain, Code.gs mengabaikannya begitu saja, jadi aman.
-async function panggilGet(tab) {
-  const { sandi } = nilaiPengaturanAktif();
-  const j = await panggilAppsScript({ aksi: "baca", tab, sandi });
-  return j.data;
-}
-
 async function panggilPost(payload) {
   const { sandi } = nilaiPengaturanAktif();
   if (!sandi) throw new Error("Kata sandi admin belum diisi di bagian Pengaturan.");
   return panggilAppsScript({ ...payload, sandi });
 }
 
-/* ---------- Unggah foto ke Google Drive lewat Code.gs ---------- */
+/* ---------- Panggilan ke GitHub Contents API (UMKM/Produk/Wisata) ----------
+   Dipakai untuk tab bersumber GITHUB -- lihat catatan di dekat definisi
+   SKEMA_TAB dan di kepala Code.gs untuk alasan pembagiannya. Token diisi
+   di bagian Pengaturan (kolom terpisah dari kata sandi Apps Script),
+   dikirim sebagai header Authorization, TIDAK PERNAH ditulis ke berkas
+   apa pun di repositori. */
 
-// Dikecilkan di peramban SEBELUM dikirim -- foto langsung dari HP bisa
-// beberapa MB, padahal katalog cukup butuh ukuran layar. Ini juga yang
-// menjaga permintaan ke Apps Script tetap kecil (ada batas ukuran di
-// Code.gs sebagai jaring pengaman, lihat UKURAN_FOTO_MAKS di sana).
-const SISI_FOTO_MAKS = 1600; // px, sisi terpanjang setelah dikecilkan
-const KUALITAS_FOTO = 0.82;
-
-// Sama persis dengan jalurFoto() di assets/app.js -- foto bisa berupa
-// nama berkas lama (assets/img/...) atau URL Drive hasil unggah baru.
-function jalurFotoTampil(foto) {
-  const s = String(foto || "").trim();
-  if (!s) return "";
-  return /^https?:\/\//i.test(s) ? s : "assets/img/" + s;
+function kredensialGithub() {
+  const { githubPemilik, githubRepo, githubToken } = nilaiPengaturanAktif();
+  if (!githubPemilik || !githubRepo || !githubToken) {
+    throw new Error(
+      "Isi Pemilik GitHub, Repositori, dan Token GitHub di bagian Pengaturan dulu.",
+    );
+  }
+  return { githubPemilik, githubRepo, githubToken };
 }
 
-function kecilkanFoto(file) {
-  return new Promise((resolve, reject) => {
-    const gambar = new Image();
-    const urlSementara = URL.createObjectURL(file);
-    gambar.onload = () => {
-      URL.revokeObjectURL(urlSementara);
-      const sisi = Math.max(gambar.naturalWidth, gambar.naturalHeight);
-      const skala = sisi > SISI_FOTO_MAKS ? SISI_FOTO_MAKS / sisi : 1;
-      const kanvas = document.createElement("canvas");
-      kanvas.width = Math.round(gambar.naturalWidth * skala);
-      kanvas.height = Math.round(gambar.naturalHeight * skala);
-      kanvas.getContext("2d").drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
-      kanvas.toBlob(
-        (blob) => {
-          if (!blob) return reject(new Error("Gagal memproses foto."));
-          const pembaca = new FileReader();
-          pembaca.onload = () => {
-            const hasil = String(pembaca.result || "");
-            resolve({ dataBase64: hasil.slice(hasil.indexOf(",") + 1), tipeMime: "image/jpeg" });
-          };
-          pembaca.onerror = () => reject(new Error("Gagal membaca foto yang sudah dikecilkan."));
-          pembaca.readAsDataURL(blob);
-        },
-        "image/jpeg",
-        KUALITAS_FOTO,
-      );
-    };
-    gambar.onerror = () => {
-      URL.revokeObjectURL(urlSementara);
-      reject(new Error("Berkas yang dipilih bukan gambar yang valid."));
-    };
-    gambar.src = urlSementara;
+// Dipanggil dari layar Masuk saja, buat kasih tahu cepat kalau
+// pemilik/repo/token yang diketik salah -- daripada admin baru sadar
+// nanti saat mencoba menyimpan data UMKM/Produk/Wisata pertama kalinya.
+async function cekGithub() {
+  const { githubPemilik, githubRepo, githubToken } = kredensialGithub();
+  const res = await fetch(
+    "https://api.github.com/repos/" + encodeURIComponent(githubPemilik) + "/" + encodeURIComponent(githubRepo),
+    { headers: { Authorization: "Bearer " + githubToken, Accept: "application/vnd.github+json" } },
+  );
+  if (!res.ok) throw new Error(await pesanGalatGithub(res));
+}
+
+function urlGithubIsi(pemilik, repo, path) {
+  return (
+    "https://api.github.com/repos/" +
+    encodeURIComponent(pemilik) +
+    "/" +
+    encodeURIComponent(repo) +
+    "/contents/" +
+    path
+  );
+}
+
+// btoa/atob polos cuma aman untuk Latin1 -- dilewatkan TextEncoder/Decoder
+// dulu supaya nama/deskripsi dengan huruf di luar itu tidak rusak.
+function keBase64Utf8(teks) {
+  const bytes = new TextEncoder().encode(teks);
+  let biner = "";
+  bytes.forEach((b) => (biner += String.fromCharCode(b)));
+  return btoa(biner);
+}
+
+function dariBase64Utf8(b64) {
+  const biner = atob(b64.replace(/\n/g, ""));
+  const bytes = Uint8Array.from(biner, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+async function pesanGalatGithub(res) {
+  try {
+    const j = await res.json();
+    return j.message || "Permintaan ke GitHub gagal (status " + res.status + ").";
+  } catch {
+    return "Permintaan ke GitHub gagal (status " + res.status + ").";
+  }
+}
+
+// sha null/undefined => berkas belum ada (dianggap daftar kosong) --
+// wajar untuk pemasangan pertama kali sebelum ada data apa pun.
+async function githubBacaBerkas(path) {
+  const { githubPemilik, githubRepo, githubToken } = kredensialGithub();
+  const res = await fetch(urlGithubIsi(githubPemilik, githubRepo, path), {
+    headers: { Authorization: "Bearer " + githubToken, Accept: "application/vnd.github+json" },
   });
+  if (res.status === 404) return { data: [], sha: null };
+  if (!res.ok) throw new Error(await pesanGalatGithub(res));
+  const j = await res.json();
+  return { data: JSON.parse(dariBase64Utf8(j.content)), sha: j.sha };
 }
 
+// PUT Contents API MENIMPA SELURUH ISI berkas -- sha wajib disertakan
+// kalau berkas itu sudah ada (didapat dari githubBacaBerkas), supaya
+// GitHub bisa menolak (409) kalau ada yang menyimpan duluan sejak
+// dibaca. Tanpa itu, dua admin yang menyimpan nyaris bersamaan bisa
+// saling menimpa perubahan satu sama lain tanpa disadari. contentBase64
+// harus SUDAH dalam bentuk base64 (dipakai untuk JSON maupun foto).
+async function githubTulisMentah(path, contentBase64, shaLama, pesanCommit) {
+  const { githubPemilik, githubRepo, githubToken } = kredensialGithub();
+  const res = await fetch(urlGithubIsi(githubPemilik, githubRepo, path), {
+    method: "PUT",
+    headers: {
+      Authorization: "Bearer " + githubToken,
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: pesanCommit,
+      content: contentBase64,
+      sha: shaLama || undefined,
+    }),
+  });
+  if (res.status === 409) {
+    throw new Error("Data sudah berubah sejak dimuat -- muat ulang daftarnya lalu coba lagi.");
+  }
+  if (!res.ok) throw new Error(await pesanGalatGithub(res));
+  return await res.json();
+}
+
+function githubTulisBerkas(path, dataBaru, shaLama, pesanCommit) {
+  return githubTulisMentah(path, keBase64Utf8(JSON.stringify(dataBaru, null, 2) + "\n"), shaLama, pesanCommit);
+}
+
+async function githubTambah(skema, dataBaru) {
+  const { data: daftar, sha } = await githubBacaBerkas(skema.berkas);
+  if (daftar.some((r) => String(r.slug) === String(dataBaru.slug))) {
+    throw new Error("Slug '" + dataBaru.slug + "' sudah dipakai di tab " + skema.label + ".");
+  }
+  daftar.push(dataBaru);
+  await githubTulisBerkas(skema.berkas, daftar, sha, "tambah " + skema.label + ": " + dataBaru.slug);
+}
+
+async function githubUbah(skema, slugLama, dataBaru) {
+  const { data: daftar, sha } = await githubBacaBerkas(skema.berkas);
+  const idx = daftar.findIndex((r) => String(r.slug) === String(slugLama));
+  if (idx === -1) {
+    throw new Error(
+      "Data tidak ditemukan -- mungkin sudah diubah/dihapus orang lain. Muat ulang daftarnya lalu coba lagi.",
+    );
+  }
+  daftar[idx] = dataBaru;
+  await githubTulisBerkas(skema.berkas, daftar, sha, "ubah " + skema.label + ": " + dataBaru.slug);
+}
+
+async function githubHapus(skema, slug) {
+  const { data: daftar, sha } = await githubBacaBerkas(skema.berkas);
+  const idx = daftar.findIndex((r) => String(r.slug) === String(slug));
+  if (idx === -1) {
+    throw new Error("Data tidak ditemukan -- mungkin sudah dihapus orang lain. Muat ulang daftarnya.");
+  }
+  daftar.splice(idx, 1);
+  await githubTulisBerkas(skema.berkas, daftar, sha, "hapus " + skema.label + ": " + slug);
+}
+
+/* ---------- Unggah foto ke GitHub (assets/img/) ---------- */
+
+// kecilkanFoto() dan jalurFotoTampil() sekarang ada di
+// assets/foto-util.js (dimuat lewat <script> sebelum berkas ini di
+// admin.html) -- dipakai bersama assets/toko-saya.js, tidak lagi
+// didefinisikan dua kali di dua tempat.
+
+// Nama berkas SELALU dibuat unik (awalan waktu) supaya PUT ini SELALU
+// membuat berkas baru di assets/img/ -- tidak pernah menimpa berkas
+// yang sudah ada, jadi tidak perlu sha (beda dari githubTulisBerkas
+// yang menimpa satu berkas data/db/*.json yang sama berulang kali).
 async function unggahFotoDariInput(elBerkas, elTeks, elPratinjau, elStatus) {
   const file = elBerkas.files && elBerkas.files[0];
   if (!file) return;
@@ -277,10 +418,17 @@ async function unggahFotoDariInput(elBerkas, elTeks, elPratinjau, elStatus) {
   elStatus.textContent = "Mengecilkan & mengunggah foto...";
   elStatus.className = "f-foto-status";
   try {
-    const { dataBase64, tipeMime } = await kecilkanFoto(file);
-    const hasil = await panggilPost({ aksi: "unggahFoto", namaAsli: file.name, tipeMime, dataBase64 });
-    elTeks.value = hasil.url;
-    elPratinjau.src = hasil.url;
+    const { dataBase64 } = await kecilkanFoto(file);
+    const namaBersih = file.name.toLowerCase().replace(/[^a-z0-9.-]+/g, "-");
+    const namaBerkas = Date.now() + "-" + namaBersih.replace(/\.[^.]+$/, "") + ".jpg";
+    await githubTulisMentah(
+      "assets/img/" + namaBerkas,
+      dataBase64,
+      null,
+      "unggah foto: " + namaBerkas,
+    );
+    elTeks.value = namaBerkas;
+    elPratinjau.src = "assets/img/" + namaBerkas;
     elPratinjau.hidden = false;
     elStatus.textContent = "Foto berhasil diunggah.";
     elStatus.className = "f-foto-status f-foto-status--ok";
@@ -380,6 +528,10 @@ function renderPengaturan() {
   $("#p-url").value = p.url || "";
   $("#p-sandi").value = p.sandi || "";
   $("#p-ingat").checked = Boolean(p.ingatSandi);
+  $("#g-pemilik").value = p.githubPemilik || "";
+  $("#g-repo").value = p.githubRepo || "";
+  $("#g-token").value = p.githubToken || "";
+  $("#g-ingat").checked = Boolean(p.ingatToken);
 }
 
 function renderPilihanTab() {
@@ -389,6 +541,16 @@ function renderPilihanTab() {
     sel.append(elemen("option", { value: kunci }, skema.label));
   });
   sel.value = tabAktif;
+  perbaruiPetunjukSumber();
+}
+
+function perbaruiPetunjukSumber() {
+  const el = $("#petunjuk-sumber");
+  if (!el) return;
+  el.textContent =
+    SKEMA_TAB[tabAktif].sumber === GITHUB
+      ? "Tab ini disimpan di GitHub -- butuh Token GitHub di bagian Pengaturan."
+      : "Tab ini lewat Apps Script -- butuh Alamat Web App & Kata Sandi Admin di bagian Pengaturan.";
 }
 
 function renderForm() {
@@ -475,12 +637,22 @@ function bacaFormJadiData() {
   return data;
 }
 
+// Pengenal baris beda bentuk menurut sumbernya: slug (sudah unik)
+// untuk tab GITHUB, atau apa pun yang dikembalikan skema.kunci(r)
+// untuk tab KHUSUS (id untuk Ulasan, slug untuk Promo/Kode Akses) --
+// dipakai apa adanya sebagai kunci "sedang mengedit yang mana" di
+// mulaiUbah/simpan/hapus, tidak perlu tahu bentuknya di situ.
+function kunciBaris(skema, r) {
+  return skema.sumber === GITHUB ? r.slug : skema.kunci(r);
+}
+
 async function muatDaftar() {
   const kotak = $("#daftar");
+  const skema = SKEMA_TAB[tabAktif];
   kotak.innerHTML = "Memuat...";
   try {
-    const baris = await panggilGet(tabAktif);
-    const skema = SKEMA_TAB[tabAktif];
+    const baris =
+      skema.sumber === GITHUB ? (await githubBacaBerkas(skema.berkas)).data : await skema.baca();
     kotak.innerHTML = "";
     if (!baris.length) {
       kotak.append(elemen("p", { kelas: "kosong-kecil" }, "Belum ada data di tab ini."));
@@ -497,7 +669,7 @@ async function muatDaftar() {
           elemen("button", { type: "button", onclick: () => mulaiUbah(r) }, "Ubah"),
           elemen(
             "button",
-            { type: "button", kelas: "tombol-bahaya", onclick: () => hapus(r._baris, skema.ringkas(r)) },
+            { type: "button", kelas: "tombol-bahaya", onclick: () => hapus(kunciBaris(skema, r), skema.ringkas(r)) },
             "Hapus",
           ),
         ),
@@ -511,7 +683,7 @@ async function muatDaftar() {
 }
 
 function mulaiUbah(data) {
-  barisDiedit = data._baris;
+  barisDiedit = kunciBaris(SKEMA_TAB[tabAktif], data);
   isiFormDariData(data);
   perbaruiJudulForm();
   pesanStatus("", "");
@@ -531,16 +703,17 @@ function mulaiTambah() {
 
 async function simpan(ev) {
   ev.preventDefault();
+  const skema = SKEMA_TAB[tabAktif];
   try {
     const data = bacaFormJadiData();
     pesanStatus("Menyimpan...", "");
-    if (barisDiedit == null) {
-      await panggilPost({ aksi: "tambah", tab: tabAktif, data });
-      pesanStatus("Data ditambahkan.", "ok");
+    if (skema.sumber === GITHUB) {
+      if (barisDiedit == null) await githubTambah(skema, data);
+      else await githubUbah(skema, barisDiedit, data);
     } else {
-      await panggilPost({ aksi: "ubah", tab: tabAktif, baris: barisDiedit, data });
-      pesanStatus("Perubahan disimpan.", "ok");
+      await skema.simpan(data, barisDiedit);
     }
+    pesanStatus(barisDiedit == null ? "Data ditambahkan." : "Perubahan disimpan.", "ok");
     mulaiTambah();
     muatDaftar();
   } catch (err) {
@@ -548,13 +721,15 @@ async function simpan(ev) {
   }
 }
 
-async function hapus(nomorBaris, ringkasan) {
+async function hapus(kunci, ringkasan) {
   if (!confirm("Hapus data ini?\n\n" + ringkasan)) return;
+  const skema = SKEMA_TAB[tabAktif];
   try {
     pesanStatus("Menghapus...", "");
-    await panggilPost({ aksi: "hapus", tab: tabAktif, baris: nomorBaris });
+    if (skema.sumber === GITHUB) await githubHapus(skema, kunci);
+    else await skema.hapus(kunci);
     pesanStatus("Data dihapus.", "ok");
-    if (barisDiedit === nomorBaris) mulaiTambah();
+    if (barisDiedit === kunci) mulaiTambah();
     muatDaftar();
   } catch (err) {
     pesanStatus("Gagal menghapus: " + err.message, "galat");
@@ -573,17 +748,39 @@ function pasang() {
     ev.preventDefault();
     const url = $("#p-url").value.trim();
     const sandi = $("#p-sandi").value;
-    if (!url || !sandi) {
-      pesanStatus("Isi alamat Web App dan kata sandi dulu.", "galat");
+    const githubPemilik = $("#g-pemilik").value.trim();
+    const githubRepo = $("#g-repo").value.trim();
+    const githubToken = $("#g-token").value;
+    const isiSheet = Boolean(url || sandi);
+    const isiGithub = Boolean(githubPemilik || githubRepo || githubToken);
+
+    if (!isiSheet && !isiGithub) {
+      pesanStatus(
+        "Isi Alamat Web App + Kata Sandi Admin, dan/atau Pemilik GitHub + Repositori + Token.",
+        "galat",
+      );
       return;
     }
-    pesanStatus("Memeriksa kata sandi...", "");
+    pesanStatus("Memeriksa...", "");
     try {
-      await panggilPost({ aksi: "cekSandi" });
+      if (isiSheet) {
+        if (!url || !sandi) throw new Error("Alamat Web App dan Kata Sandi Admin harus diisi berdua.");
+        await panggilPost({ aksi: "cekSandi" });
+      }
+      if (isiGithub) {
+        if (!githubPemilik || !githubRepo || !githubToken) {
+          throw new Error("Pemilik GitHub, Repositori, dan Token harus diisi bertiga.");
+        }
+        await cekGithub();
+      }
       simpanPengaturan({
         url,
         sandi: $("#p-ingat").checked ? sandi : "",
         ingatSandi: $("#p-ingat").checked,
+        githubPemilik,
+        githubRepo,
+        githubToken: $("#g-ingat").checked ? githubToken : "",
+        ingatToken: $("#g-ingat").checked,
       });
       bukaKunci();
       muatDaftar();
@@ -595,37 +792,54 @@ function pasang() {
   });
 
   $("#btn-keluar").addEventListener("click", () => {
-    simpanPengaturan({ url: $("#p-url").value.trim(), sandi: "", ingatSandi: false });
+    simpanPengaturan({
+      url: $("#p-url").value.trim(),
+      sandi: "",
+      ingatSandi: false,
+      githubPemilik: $("#g-pemilik").value.trim(),
+      githubRepo: $("#g-repo").value.trim(),
+      githubToken: "",
+      ingatToken: false,
+    });
     $("#p-sandi").value = "";
     $("#p-ingat").checked = false;
+    $("#g-token").value = "";
+    $("#g-ingat").checked = false;
     $("#daftar").innerHTML = "";
     mulaiTambah();
     tutupKunci();
     pesanStatus("Sudah keluar.", "");
   });
 
-  // Kalau kata sandi sebelumnya diminta diingat, coba langsung masuk
-  // tanpa perlu klik apa pun -- tetap lewat cekSandi ke server, bukan
-  // sekadar percaya begitu saja pada apa yang tersimpan di peramban.
+  // Kalau kredensial sebelumnya diminta diingat, coba langsung masuk
+  // tanpa perlu klik apa pun -- tetap lewat cekSandi/cekGithub ke
+  // server, bukan sekadar percaya begitu saja pada apa yang tersimpan
+  // di peramban. Kedua kredensial independen: satu boleh belum pernah
+  // diisi sementara yang lain sudah dipakai.
   const tersimpan = ambilPengaturan();
-  if (tersimpan.url && tersimpan.sandi) {
+  const cobaSheet = Boolean(tersimpan.url && tersimpan.sandi);
+  const cobaGithub = Boolean(tersimpan.githubPemilik && tersimpan.githubRepo && tersimpan.githubToken);
+  if (cobaSheet || cobaGithub) {
     pesanStatus("Memeriksa sesi tersimpan...", "");
-    panggilPost({ aksi: "cekSandi" })
-      .then(() => {
+    Promise.all([
+      cobaSheet ? panggilPost({ aksi: "cekSandi" }).then(() => "").catch((e) => "Sheet: " + e.message) : "",
+      cobaGithub ? cekGithub().then(() => "").catch((e) => "GitHub: " + e.message) : "",
+    ]).then(([galatSheet, galatGithub]) => {
+      if ((cobaSheet && !galatSheet) || (cobaGithub && !galatGithub)) {
         bukaKunci();
         muatDaftar();
         muatStatistik();
-        pesanStatus("", "");
-      })
-      .catch((err) => {
-        pesanStatus("Sesi tersimpan tidak berlaku lagi: " + err.message, "galat");
-      });
+      }
+      const galat = [galatSheet, galatGithub].filter(Boolean);
+      pesanStatus(galat.length ? "Sesi tersimpan tidak semuanya berlaku lagi -- " + galat.join("; ") : "", galat.length ? "galat" : "");
+    });
   }
 
   $("#pilih-tab").addEventListener("change", (ev) => {
     tabAktif = ev.target.value;
     mulaiTambah();
     renderForm();
+    perbaruiPetunjukSumber();
     $("#daftar").innerHTML = "";
     pesanStatus("", "");
   });

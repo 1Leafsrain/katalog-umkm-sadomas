@@ -20,7 +20,8 @@ robots.txt         izin crawler + alamat sitemap, untuk Google
 sitemap.xml        daftar alamat situs untuk Google, DIBUAT OTOMATIS -- jangan edit langsung
 manifest.json      nama, warna, dan ikon untuk mode "instal ke HP" (PWA)
 sw.js              service worker -- membuat situs bisa dibuka tanpa internet
-data/katalog.js    SATU-SATUNYA berkas yang perlu diubah untuk memperbarui isi
+data/katalog.js    dibaca situs publik -- disusun otomatis dari data/db/*.json (+ Google Sheet kalau dipakai)
+data/db/           UMKM/Produk/Wisata/Ulasan/Promo, diedit lewat admin.html atau GitHub langsung
 assets/style.css   gaya tampilan
 assets/app.js      penyusun halaman + seluruh ikon (SVG di dalam berkas)
 assets/fonts/      huruf Plus Jakarta Sans, disimpan sendiri
@@ -29,28 +30,35 @@ assets/img/        tempat menyimpan foto produk
 admin.html         form tambah/ubah/hapus data (opsional, lihat PANDUAN-ADMIN.md)
 toko-saya.html     statistik & promo mandiri per-UMKM lewat kode akses (opsional)
 scripts/           alat bantu Node.js (mode Google Sheet opsional, + pembuat sitemap.xml)
-scripts/apps-script/ kode Google Apps Script untuk form admin (opsional)
+scripts/apps-script/ kode Google Apps Script (Standalone Script, TANPA Google Sheet -- lihat PANDUAN-ADMIN.md)
 .github/workflows/ workflow GitHub Actions (Sheet opsional; pembuat sitemap selalu aktif)
 ```
 
-## Tiga cara memperbarui isi
+## Cara memperbarui isi
 
-1. **Edit `data/katalog.js` langsung di GitHub** -- lihat `PANDUAN-UPDATE.md`.
-   Cocok kalau yang mengelola sudah biasa dengan GitHub.
-2. **Edit lewat Google Sheet** -- lihat `PANDUAN-SHEET.md`. Cocok kalau
-   pengelola cukup pegang Google Sheets, tidak perlu akun GitHub sama
-   sekali. Sebuah GitHub Actions menariknya secara berkala dan
-   men-commit-kan `data/katalog.js` secara otomatis; situsnya sendiri
-   tetap statis (lihat pengecualian statistik/ulasan di bawah).
-3. **Edit lewat form admin (`admin.html`)** -- lihat `PANDUAN-ADMIN.md`.
-   Dibangun di atas cara nomor 2: halaman form statis yang menulis ke Sheet
-   yang sama lewat Google Apps Script, jadi pengurus tidak perlu buka
-   spreadsheet mentah untuk tambah/ubah/hapus UMKM, produk, wisata, atau
-   ulasan.
+`data/katalog.js` (yang dibaca situs publik) disusun otomatis oleh
+GitHub Actions -- jangan diedit langsung begitu sumbernya sudah dipakai:
 
-Kalau mode Sheet sudah dipakai (variabel `SHEET_ID` sudah diisi),
-`data/katalog.js` berubah jadi berkas hasil otomatis -- jangan diedit
-langsung lagi, ikuti cara nomor 2 atau 3.
+- **UMKM, Produk, Wisata (+ foto), Ulasan Pembeli, Promo per-UMKM** --
+  tersimpan sebagai `data/db/*.json` (+ `assets/img/` untuk foto) di
+  repositori GitHub ini. Diedit lewat **form admin (`admin.html`)**,
+  lihat `PANDUAN-ADMIN.md` -- atau langsung edit JSON-nya di GitHub
+  kalau sudah terbiasa. Perubahan tampil di katalog publik hampir
+  seketika (ikut GitHub Pages terbit ulang).
+- **Kode Akses Toko, Statistik** -- tersimpan privat di dalam proyek
+  Apps Script sendiri (`PropertiesService`), TIDAK PERNAH masuk
+  `data/katalog.js` maupun berkas publik apa pun. Diedit/dilihat lewat
+  `admin.html` (Kode Akses) atau `toko-saya.html` (Statistik per-toko).
+- **`DESA`, `TESTIMONI`, `KATEGORI`** (isinya sedikit, jarang berubah) --
+  boleh tetap diedit langsung di `data/katalog.js` lewat GitHub (lihat
+  `PANDUAN-UPDATE.md`), ATAU lewat Google Sheet murni opsional
+  (`PANDUAN-SHEET.md`) kalau desa lebih suka begitu.
+
+**Google Sheet TIDAK diperlukan sama sekali** untuk memakai situs ini
+sepenuhnya, termasuk fitur admin/statistik/ulasan/promo -- satu-satunya
+kegunaannya (opsional) adalah mengedit 3 baris terakhir di atas lewat
+spreadsheet. Lihat `PANDUAN-ADMIN.md` bagian "Kenapa dipecah begini"
+untuk alasan lengkap pembagian penyimpanan ini.
 
 ## Hampir tidak ada panggilan ke server luar
 
@@ -70,21 +78,26 @@ bagian yang mendadak rusak kalau layanan pihak ketiga berubah atau diblokir.
 
 **Satu pengecualian yang disengaja**: `assets/app.js` (fungsi
 `catatStatistik`/`panggilStatistikPublik`) memanggil Google Apps Script
-(backend yang sama dipakai `admin.html`) untuk tiga hal -- mencatat
-kunjungan halaman toko, mencatat klik tombol WhatsApp, dan mengirim
-ulasan pembeli. Ini satu-satunya cara menghitung statistik dari SEMUA
-pengunjung (bukan cuma dari satu perangkat lewat localStorage), dan
-satu-satunya cara pembeli mengirim ulasannya sendiri. Panggilan ini
-selalu anonim dan gagal-diam -- kalau gagal/lambat/diblokir, situs tetap
-tampil normal, cuma statistiknya yang tidak tercatat. Lihat
-`PANDUAN-SHEET.md` bagian tab `STATISTIK`/`AKSES_UMKM`/`PROMO` dan
-`toko-saya.html` untuk detailnya.
+(Standalone Script, TIDAK ditempel ke Google Sheet mana pun -- lihat
+`PANDUAN-ADMIN.md`) untuk tiga hal -- mencatat kunjungan halaman toko,
+mencatat klik tombol WhatsApp, dan mengirim ulasan pembeli. Ini
+satu-satunya cara menghitung statistik dari SEMUA pengunjung (bukan
+cuma dari satu perangkat lewat localStorage), dan satu-satunya cara
+pembeli mengirim ulasannya sendiri. Panggilan ini selalu anonim dan
+gagal-diam -- kalau gagal/lambat/diblokir, situs tetap tampil normal,
+cuma statistiknya yang tidak tercatat. Lihat `PANDUAN-ADMIN.md` untuk
+detailnya.
 
 `admin.html` sendiri (opsional, dipakai pengurus) memang selalu bicara ke
-Apps Script untuk tiap tambah/ubah/hapus data -- termasuk aksi
-`unggahFoto`, yang menyimpan foto ke sebuah folder Google Drive (bukan ke
-repositori GitHub seperti `assets/img/`). Lihat `PANDUAN-ADMIN.md` bagian
-"Mengunggah foto lewat form admin".
+server luar untuk menyimpan data -- tapi ke tempat berbeda tergantung
+tabnya. UMKM/Produk/Wisata (termasuk unggah foto ke `assets/img/`) lewat
+**GitHub Contents API langsung** (pakai token akses pribadi admin, tanpa
+Apps Script sama sekali); Ulasan/Promo lewat Apps Script yang merelai ke
+GitHub (token tersendiri, disimpan di server); Kode Akses/Statistik
+tersimpan privat di Apps Script sendiri, tidak pernah jadi berkas publik.
+Lihat `PANDUAN-ADMIN.md` bagian "Kenapa dipecah begini" untuk alasan
+pembagiannya, dan bagian "Mengunggah foto lewat form admin" untuk detail
+unggah foto.
 
 ## Memasang ke GitHub Pages
 

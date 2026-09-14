@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 /* ============================================================
-   SEKALI PAKAI: membuat berkas CSV dari data/katalog.js yang
-   sekarang, untuk diimpor ke Google Sheet baru sebagai titik awal --
-   supaya isi yang sudah ada (UMKM, produk, wisata) tidak perlu
-   diketik ulang manual satu-satu di Sheet.
+   SEKALI PAKAI: membuat berkas CSV dari data/katalog.js yang sekarang,
+   untuk diimpor ke Google Sheet baru -- HANYA relevan kalau desa
+   memang ingin mengedit DESA/TESTIMONI/KATEGORI (isinya sedikit, jarang
+   berubah) lewat spreadsheet biasa. Lihat PANDUAN-SHEET.md.
+
+   UMKM/PRODUK/WISATA/PROMO/ULASAN TIDAK ada di sini -- semuanya
+   disimpan di GitHub (data/db/*.json) atau PropertiesService Apps
+   Script (Kode Akses Toko), bukan di Sheet sama sekali lagi. Titik
+   awalnya dibuat lewat scripts/katalog-ke-db.mjs, bukan skrip ini.
+   Lihat PANDUAN-ADMIN.md.
 
    Jalankan:  node scripts/katalog-ke-sheet.mjs
 
@@ -11,24 +17,20 @@
    Cara mengimpornya ke Google Sheet ada di PANDUAN-SHEET.md.
 
    Berkas ini TIDAK dipakai oleh GitHub Actions dan tidak berjalan
-   otomatis -- hanya alat bantu sekali saat menyiapkan Sheet pertama
-   kali.
+   otomatis -- hanya alat bantu sekali kalau memang mau memakai mode
+   Sheet opsional itu.
    ============================================================ */
 
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import vm from "node:vm";
 import { jadiCsv } from "./csv-util.mjs";
-import { JUMLAH_GALERI, JUMLAH_RINCIAN, KUNCI_DESA } from "./skema.mjs";
+import { KUNCI_DESA } from "./skema.mjs";
 
 const kode = await readFile(new URL("../data/katalog.js", import.meta.url), "utf8");
 const sandbox = {};
 vm.createContext(sandbox);
-vm.runInContext(
-  kode +
-    "\nthis.__data = { DESA, TESTIMONI, KATEGORI, UMKM, PRODUK, WISATA };",
-  sandbox,
-);
-const { DESA, TESTIMONI, KATEGORI, UMKM, PRODUK, WISATA } = sandbox.__data;
+vm.runInContext(kode + "\nthis.__data = { DESA, TESTIMONI, KATEGORI };", sandbox);
+const { DESA, TESTIMONI, KATEGORI } = sandbox.__data;
 
 const folder = new URL("../sheet-seed/", import.meta.url);
 await mkdir(folder, { recursive: true });
@@ -36,19 +38,6 @@ await mkdir(folder, { recursive: true });
 async function tulis(namaBerkas, header, baris) {
   await writeFile(new URL(namaBerkas, folder), jadiCsv(header, baris), "utf8");
   console.log("Ditulis:", "sheet-seed/" + namaBerkas, "(" + baris.length + " baris)");
-}
-
-function kolomGaleriJudulFoto(prefix) {
-  const hasil = [];
-  for (let i = 1; i <= JUMLAH_GALERI; i++) hasil.push(prefix + i + "_judul", prefix + i + "_foto");
-  return hasil;
-}
-
-function nilaiGaleriJudulFoto(galeri) {
-  const g = galeri || [];
-  const hasil = [];
-  for (let i = 0; i < JUMLAH_GALERI; i++) hasil.push(g[i]?.judul || "", g[i]?.foto || "");
-  return hasil;
 }
 
 /* ---------- DESA ---------- */
@@ -76,86 +65,5 @@ await tulis(
   ["id", "nama"],
   KATEGORI.map((k) => [k.id, k.nama]),
 );
-
-/* ---------- UMKM ---------- */
-await tulis(
-  "UMKM.csv",
-  [
-    "slug", "nama", "kategori", "pemilik", "wa",
-    "alamat", "foto", "penilaian", "jamBuka", "pengiriman", "fotoLokasi",
-    "deskripsi",
-  ],
-  UMKM.map((u) => [
-    u.slug, u.nama, u.kategori, u.pemilik, u.wa,
-    u.alamat, u.foto, u.penilaian, u.jamBuka, u.pengiriman, u.fotoLokasi,
-    u.deskripsi,
-  ]),
-);
-
-/* ---------- PROMO (satu per UMKM yang sudah pernah diisi) ---------- */
-await tulis(
-  "PROMO.csv",
-  ["slug", "teks", "aktif"],
-  UMKM.filter((u) => u.promo && u.promo.teks).map((u) => [
-    u.slug, u.promo.teks, u.promo.aktif ? "TRUE" : "FALSE",
-  ]),
-);
-
-/* ---------- AKSES_UMKM (kode akses toko -- RAHASIA, tidak ada sumbernya
-   di data/katalog.js, cuma header kolom supaya admin tinggal isi manual) ---------- */
-await tulis("AKSES_UMKM.csv", ["slug", "kode"], []);
-
-/* ---------- WISATA ---------- */
-await tulis(
-  "WISATA.csv",
-  [
-    "slug", "nama", "jenis", "alamat", "jamBuka", "tiket", "kontak", "foto",
-    "fotoLokasi", "penilaian", "keteranganGaleri",
-    ...kolomGaleriJudulFoto("galeri"), "deskripsi",
-  ],
-  WISATA.map((w) => [
-    w.slug, w.nama, w.jenis, w.alamat, w.jamBuka, w.tiket, w.kontak, w.foto,
-    w.fotoLokasi, w.penilaian, w.keteranganGaleri,
-    ...nilaiGaleriJudulFoto(w.galeri), w.deskripsi,
-  ]),
-);
-
-/* ---------- PRODUK ---------- */
-function kolomRincian() {
-  const hasil = [];
-  for (let i = 1; i <= JUMLAH_RINCIAN; i++) hasil.push("rincian" + i + "_label", "rincian" + i + "_isi");
-  return hasil;
-}
-function nilaiRincian(rincian) {
-  const r = rincian || [];
-  const hasil = [];
-  for (let i = 0; i < JUMLAH_RINCIAN; i++) hasil.push(r[i]?.[0] || "", r[i]?.[1] || "");
-  return hasil;
-}
-await tulis(
-  "PRODUK.csv",
-  [
-    "slug", "nama", "umkm", "kategori", "harga", "satuan", "foto",
-    "penilaian", "galeri1", "galeri2", "galeri3", "galeri4", "unggulan",
-    "deskripsi", ...kolomRincian(),
-  ],
-  PRODUK.map((p) => {
-    const g = p.galeri || [];
-    return [
-      p.slug, p.nama, p.umkm, p.kategori, p.harga, p.satuan, p.foto,
-      p.penilaian, g[0] || "", g[1] || "", g[2] || "", g[3] || "",
-      p.unggulan ? "TRUE" : "FALSE", p.deskripsi, ...nilaiRincian(p.rincian),
-    ];
-  }),
-);
-
-/* ---------- ULASAN (digabung dari semua produk) ---------- */
-const semuaUlasan = [];
-PRODUK.forEach((p) =>
-  (p.ulasan || []).forEach((u) =>
-    semuaUlasan.push([p.slug, u.nama, u.asal, u.penilaian, u.teks]),
-  ),
-);
-await tulis("ULASAN.csv", ["produk", "nama", "asal", "penilaian", "teks"], semuaUlasan);
 
 console.log("\nSelesai. Impor tiap berkas di sheet-seed/ jadi satu tab di Google Sheet baru.");

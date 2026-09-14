@@ -1,125 +1,214 @@
 # Form admin (tambah / ubah / hapus data lewat halaman web)
 
-Cara ini menambah **halaman form** di atas Google Sheet yang sudah disiapkan
-lewat `PANDUAN-SHEET.md` -- supaya pengurus tidak perlu buka spreadsheet
-mentah untuk tambah/ubah/hapus UMKM, produk, wisata, atau ulasan. Formnya
-dihost statis di GitHub Pages seperti halaman lain, tapi saat disimpan,
-datanya dikirim ke **Google Apps Script Web App** yang menulis langsung ke
-Sheet yang sama dipakai `PANDUAN-SHEET.md`.
+Cara ini menambah **halaman form** (`admin.html`) supaya pengurus tidak
+perlu buka spreadsheet mentah atau kode GitHub untuk tambah/ubah/hapus
+UMKM, produk, wisata, ulasan, atau promo. **Google Sheet TIDAK
+DIPERLUKAN sama sekali** -- datanya tersimpan di GitHub dan di
+penyimpanan privat milik Apps Script sendiri, tergantung jenisnya:
 
-**Wajib sudah menyelesaikan `PANDUAN-SHEET.md` dulu** (Sheet dengan tab-tab
-katalog sudah ada, sudah dibagikan "Anyone with the link"). Panduan ini
-menambah satu lapisan di atasnya, bukan pengganti. Selain tab katalog, form
-admin ini juga butuh 2 tab tambahan yang khusus dijelaskan di sini:
-`AKSES_UMKM` (kode akses tiap toko) dan `STATISTIK` (log kunjungan/klik-WA)
--- lihat `PANDUAN-SHEET.md` untuk kolomnya.
+| Jenis data | Tersimpan di | Ditulis oleh | Kredensial |
+| --- | --- | --- | --- |
+| UMKM, Produk, Wisata (+ foto) | GitHub (`data/db/*.json` + `assets/img/`) | Peramban admin langsung | Token GitHub pribadi admin |
+| Ulasan Pembeli, Promo per-UMKM | GitHub (`data/db/ulasan.json`/`promo.json`) | **Apps Script** (relay, token di server) | Kata sandi admin (`KATA_SANDI`) |
+| Kode Akses Toko, Statistik | Privat di Apps Script sendiri (`PropertiesService`) | Apps Script langsung | Kata sandi admin (`KATA_SANDI`) |
 
-> **Sudah pernah pasang `Code.gs` versi lama?** Bagian statistik, promo,
-> ulasan mandiri, DAN unggah foto di bawah ini butuh `Code.gs` versi
-> TERBARU. Ulangi langkah 1-2 di bawah (salin ulang isi
-> `scripts/apps-script/Code.gs` yang sekarang, tempel menimpa yang lama,
-> lalu **Deploy > Manage deployments** -> pensil pada deployment aktif ->
-> Version **New version** -> Deploy). Alamat Web App-nya TIDAK berubah,
-> jadi tidak perlu isi ulang di `admin.html`. Karena versi terbaru
-> menambah akses ke Google Drive (untuk unggah foto), Google akan
-> menampilkan lagi layar izin ("Authorize access") saat Deploy -- klik
-> **Allow** seperti langkah 1.5 di bawah.
+**Kenapa dipecah begini?** UMKM/Produk/Wisata cuma pernah ditulis admin
+(yang memang sudah pegang rahasia asli), jadi token GitHub saja cukup
+jadi gerbangnya -- tidak perlu server apa pun. Ulasan pembeli ditulis
+pengunjung ANONIM dan promo ditulis pemilik toko lewat kode akses --
+keduanya **wajib divalidasi di server** sebelum data tersimpan/
+tersingkap, sesuatu yang tidak bisa dilakukan aman kalau kredensial
+tertanam di halaman publik (siapa pun bisa mengambilnya lewat DevTools
+peramban). Karena itu Apps Script tetap diperlukan sebagai satu-satunya
+"server sungguhan" yang tersedia di sini -- tapi ia tidak lagi ditempel
+ke Google Sheet mana pun (jadi **Standalone Script**), dan menulis
+Ulasan/Promo langsung ke GitHub (pakai token yang disimpan DI SERVER,
+tidak pernah tersingkap ke peramban), sementara Kode Akses & Statistik
+disimpan di penyimpanan privatnya sendiri (`PropertiesService`) --
+tidak pernah lewat berkas publik, karena repo GitHub ini bisa dibaca
+siapa saja.
+
+Akibat baiknya: **tidak perlu membuat Google Sheet sama sekali** untuk
+pemasangan baru, dan hampir semua perubahan (UMKM/Produk/Wisata,
+Ulasan, Promo) tampil di katalog publik **hampir seketika** -- cuma
+Kode Akses & Statistik yang memang tidak pernah masuk katalog publik.
 
 ```
-admin.html (GitHub Pages)
-      |  isi form, klik Simpan
-      v
-Apps Script Web App (nempel di Google Sheet)
-      |  cek kata sandi, tulis baris
-      v
-Google Sheet  <-- (sama persis dengan yang dipakai PANDUAN-SHEET.md)
-      |
-GitHub Actions menariknya (jadwal / tombol manual, lihat PANDUAN-SHEET.md)
-      v
-data/katalog.js diperbarui -> GitHub Pages terbit ulang
+UMKM / Produk / Wisata (+ foto)      Ulasan / Promo             Kode Akses / Statistik
+      |  isi form admin.html              |  isi form admin.html      |  isi form admin.html
+      v                                    v                          v
+GitHub Contents API              Apps Script Web App          Apps Script Web App
+(token pribadi admin)             (Standalone Script)          (Standalone Script)
+      |  commit langsung ke              |  cek kata sandi            |  cek kata sandi
+      |  data/db/*.json/                 |  token GitHub SERVER       |  simpan ke
+      |  assets/img/                     v                            |  PropertiesService
+      v                          data/db/ulasan.json/                 v
+GitHub Pages terbit ulang        promo.json (GitHub)           (privat, tidak pernah
+(hampir seketika)                       |                       jadi berkas publik)
+                                  GitHub Pages terbit ulang
+                                  (hampir seketika)
 ```
 
-**Perubahan lewat form admin TIDAK langsung muncul di katalog publik.**
-Sama seperti mengedit Sheet manual: harus menunggu GitHub Actions menariknya
-(jadwal, atau tombol *Run workflow* untuk yang tidak mau menunggu).
+> **Sudah pernah pasang versi sebelumnya (data lewat Google Sheet)?**
+> Panduan ini menjelaskan susunan yang BARU (tanpa Sheet sama sekali).
+> Langkah migrasinya ada di bagian "Pindah dari versi lama" di paling
+> bawah berkas ini.
 
-## 1. Pasang Apps Script di Google Sheet
+## Bagian A -- Menyiapkan penyimpanan GitHub (UMKM/Produk/Wisata)
 
-1. Buka Google Sheet-nya, lalu menu **Extensions > Apps Script**.
-2. Akan terbuka editor kode dengan berkas `Code.gs` kosong berisi
+### A1. Buat token akses GitHub (untuk admin.js, dipakai peramban)
+
+1. Masuk ke akun GitHub yang memegang repositori ini, buka
+   `https://github.com/settings/personal-access-tokens/new`.
+2. **Token name**: bebas, misalnya "Admin Katalog UMKM".
+3. **Expiration**: pilih durasi (disarankan 1 tahun, bukan "No expiration")
+   -- supaya ada dorongan diperbarui berkala. Catat tanggal habisnya.
+4. **Repository access**: pilih **Only select repositories**, lalu pilih
+   repositori situs ini SAJA (misalnya `katalog-umkm-sadomas`). JANGAN
+   pilih "All repositories".
+5. **Permissions**: klik **Repository permissions**, cari **Contents**,
+   ubah jadi **Read and write**. Biarkan izin lain tetap **No access**.
+6. Klik **Generate token**. Token cuma ditampilkan SEKALI -- salin dan
+   simpan dulu (misalnya di pengelola kata sandi), karena tidak bisa
+   dilihat lagi setelah halaman ini ditutup (kalau lupa, buat token baru
+   dan hapus yang lama).
+
+Token ini setara "kata sandi" khusus untuk data UMKM/Produk/Wisata --
+dipakai LANGSUNG DARI PERAMBAN admin, berbeda dan terpisah dari token
+GitHub milik Apps Script di Bagian B3 (itu dipakai server, tidak pernah
+disentuh peramban). Karena dibatasi hanya ke satu repositori dan hanya
+izin Contents, kalau bocor dampaknya jauh lebih kecil daripada token
+akses-penuh ke semua repo.
+
+### A2. Pastikan data/db/*.json ada
+
+Repositori ini seharusnya sudah punya `data/db/umkm.json`,
+`produk.json`, `wisata.json`, `ulasan.json`, `promo.json` (dibuat lewat
+`scripts/katalog-ke-db.mjs` dari isi `data/katalog.js` yang ada, kalau
+belum pernah dijalankan). Kalau mau dimulai dari kosong, cukup pastikan
+kelima berkas ini ada dan setidaknya berisi `[]`.
+
+### A3. Isi Pemilik GitHub, Repositori, dan Token di admin.html
+
+Buka `admin.html`, isi tiga kolom di bagian "Untuk UMKM / Produk / Wisata
+(GitHub)": Pemilik GitHub (nama akun/organisasi GitHub, contoh
+`1leafsrain`), Repositori (nama repo, contoh `katalog-umkm-sadomas`),
+dan Token GitHub dari langkah A1.
+
+## Bagian B -- Menyiapkan Apps Script (Ulasan/Promo/Kode Akses/Statistik)
+
+**Google Sheet TIDAK diperlukan untuk bagian ini.** Apps Script dibuat
+sebagai proyek berdiri sendiri (Standalone Script), bukan ditempel ke
+spreadsheet mana pun.
+
+### B1. Buat Standalone Script
+
+1. Buka `https://script.google.com`, masuk dengan akun Google yang akan
+   memegang situs ini.
+2. Klik **New project**.
+3. Akan terbuka editor kode dengan berkas `Code.gs` kosong berisi
    `function myFunction() {}`. Hapus semuanya.
-3. Buka `scripts/apps-script/Code.gs` di repositori ini, salin semua isinya,
+4. Buka `scripts/apps-script/Code.gs` di repositori ini, salin semua isinya,
    tempel ke editor Apps Script tadi.
-4. Cari baris `var KATA_SANDI = "GANTI_KATA_SANDI_ADMIN";` di dekat atas.
+5. (Opsional tapi disarankan) klik nama proyek di kiri atas ("Untitled
+   project"), ganti jadi nama yang jelas, misalnya "Katalog UMKM Sadomas".
+6. Cari baris `var KATA_SANDI = "GANTI_KATA_SANDI_ADMIN";` di dekat atas.
    **Ganti** `GANTI_KATA_SANDI_ADMIN` dengan PIN pilihan sendiri (bebas,
    tidak harus rumit -- ini cuma penyaring supaya bukan sembarang orang yang
-   tahu alamat Web App-nya bisa menulis data, bukan kata sandi akun Google).
-5. Simpan (ikon disket, atau Ctrl/Cmd+S).
+   tahu alamat Web App-nya bisa menulis/memoderasi data, bukan kata sandi
+   akun Google).
+7. Cari baris `var GITHUB_PEMILIK = "GANTI_PEMILIK_GITHUB";` dan
+   `var GITHUB_REPO = "GANTI_NAMA_REPO";` sedikit di bawahnya. **Ganti**
+   keduanya dengan nilai yang SAMA dipakai di Bagian A3 (Pemilik GitHub
+   dan Repositori).
+8. Simpan (ikon disket, atau Ctrl/Cmd+S).
 
-## 2. Deploy sebagai Web App
+### B2. Isi token GitHub milik SERVER (Script Properties)
+
+Berbeda dari token di Bagian A1 (dipakai peramban admin), Apps Script
+butuh token GitHub SENDIRI untuk menulis `data/db/ulasan.json`/
+`promo.json` -- disimpan di tempat yang tidak pernah tersingkap lewat
+kode ataupun peramban siapa pun:
+
+1. Ulangi langkah A1 untuk membuat SATU token fine-grained BARU (boleh
+   nama berbeda, misalnya "Apps Script Katalog UMKM"), scope sama
+   (repositori ini saja, **Contents: Read and write**).
+2. Di editor Apps Script, klik ikon gerigi **Project Settings** di kiri.
+3. Gulir ke **Script Properties**, klik **Add script property**.
+4. **Property**: `GITHUB_TOKEN`. **Value**: tempel token dari langkah 1.
+   Klik **Save script properties**.
+
+Token ini TIDAK PERNAH ditulis di `Code.gs` maupun terlihat peramban
+mana pun -- cuma bisa dibaca kode yang jalan di proyek Apps Script ini
+sendiri.
+
+### B3. Deploy sebagai Web App
 
 1. Klik tombol biru **Deploy** (kanan atas) -> **New deployment**.
 2. Kalau belum ada pilihan jenis, klik ikon gerigi di sebelah "Select type"
    -> pilih **Web app**.
 3. Isi:
    - Description: bebas, misalnya "Form admin katalog"
-   - Execute as: **Me** (akun yang punya Sheet ini)
+   - Execute as: **Me** (akun yang membuat proyek ini)
    - Who has access: **Anyone**
 4. Klik **Deploy**.
 5. Google akan minta izin ("Authorize access") karena skripnya mengakses
-   Sheet ini. Klik akun Google yang dipakai -> kalau muncul layar "Google
-   hasn't verified this app", klik **Advanced** -> **Go to (nama proyek)
-   (unsafe)** -> **Allow**. Ini normal untuk skrip buatan sendiri yang belum
-   didaftarkan ke Google, bukan tanda ada yang salah.
+   internet (membaca/menulis `data/db/*.json` di GitHub, dan memvalidasi
+   slug UMKM/Produk). Klik akun Google yang dipakai -> kalau muncul layar
+   "Google hasn't verified this app", klik **Advanced** -> **Go to (nama
+   proyek) (unsafe)** -> **Allow**. Ini normal untuk skrip buatan sendiri
+   yang belum didaftarkan ke Google, bukan tanda ada yang salah.
 6. Setelah selesai, akan muncul **Web app URL** berbentuk:
    `https://script.google.com/macros/s/xxxxxxxxxxxxx/exec`
    **Salin alamat ini.**
 
 ### Coba dulu sebelum dipakai
 
-Tempel alamat tadi + `?tab=UMKM` di tab peramban baru, contoh:
-`https://script.google.com/macros/s/xxxxx/exec?tab=UMKM`
+Buka Web App URL tadi langsung di tab peramban baru (tanpa tambahan
+apa pun di belakangnya). Kalau berhasil, muncul teks
+`{"ok":true,"pesan":"Web App aktif dan bisa diakses."}`. Kalau muncul
+halaman error Google, ulangi langkah deploy dan pastikan "Who has
+access" memang **Anyone**.
 
-Kalau berhasil, muncul teks JSON berisi data UMKM yang sekarang
-(`{"data":[...]}`). Kalau muncul halaman error Google, ulangi langkah
-deploy dan pastikan "Who has access" memang **Anyone**.
+## Pakai halaman admin
 
-## 3. Pakai halaman admin
-
-1. Buka `admin.html` di situs (misalnya
-   `https://<akun>.github.io/katalog-umkm-sadomas/admin.html`). Yang tampil
-   pertama kali adalah layar **Masuk**.
-2. Tempel Web app URL dari langkah sebelumnya, isi kata sandi yang tadi
-   diisi di `KATA_SANDI`. Centang "Ingat kata sandi di peramban ini" kalau
-   memakai perangkat pribadi yang tidak dipakai orang lain (jangan
-   dicentang di komputer/HP bersama).
-3. Klik **Masuk**. Kalau kata sandinya cocok, bagian Data dan form
-   tambah/ubah baru muncul. Kalau salah, tetap di layar Masuk dengan pesan
-   "Kata sandi salah."
-4. Pilih **Jenis data** (UMKM / Produk / Wisata / Ulasan / Promo per-UMKM /
-   Kode akses toko), klik **Muat Daftar** untuk melihat data yang sudah ada.
+1. Buka `admin.html` di situs (atau tekan ikon gembok di pojok kanan atas
+   tiap halaman). Yang tampil pertama kali adalah layar **Masuk**.
+2. Isi salah satu atau kedua kredensial, sesuai data yang mau diubah:
+   Pemilik GitHub + Repositori + Token (Bagian A), dan/atau Alamat Web
+   App + Kata Sandi Admin (Bagian B). Boleh isi satu dulu, lengkapi yang
+   lain kapan pun -- tidak wajib keduanya sekaligus.
+3. Klik **Masuk**. Kredensial yang diisi akan diperiksa (token ke
+   GitHub, kata sandi ke Apps Script); yang tidak diisi dilewati begitu
+   saja.
+4. Pilih **Jenis data** pada menu -- di bawahnya ada keterangan singkat
+   tab itu disimpan di GitHub atau lewat Apps Script, supaya jelas
+   kredensial mana yang dipakai.
 5. **Tambah data baru**: klik **+ Tambah Baru**, isi form, klik **Simpan**.
 6. **Ubah data**: klik **Ubah** pada salah satu baris di daftar, ubah
    isiannya, klik **Simpan**.
 7. **Hapus data**: klik **Hapus** pada salah satu baris di daftar (akan ada
    konfirmasi sebelum benar-benar terhapus).
-8. Setelah selesai, buka tab **Actions** di GitHub, jalankan workflow
-   **"Tarik data dari Google Sheet"** lewat tombol **Run workflow** supaya
-   perubahannya langsung tampil di situs -- jangan menunggu jadwal kalau
-   memang ingin cepat.
+8. Semua perubahan (UMKM/Produk/Wisata lewat GitHub langsung, Ulasan/
+   Promo lewat Apps Script yang merelai ke GitHub) tampil di katalog
+   publik **hampir seketika** -- GitHub Pages terbit ulang otomatis
+   setiap ada commit baru, tidak ada lagi jadwal 30-60 menit untuk
+   ditunggu.
 
-Halaman ini menangani tab `UMKM`, `PRODUK`, `WISATA`, `ULASAN`, `PROMO`, dan
-`AKSES_UMKM` -- tab-tab yang isinya banyak baris berulang. Tab `DESA`,
-`TESTIMONI`, dan `KATEGORI` isinya cuma sedikit baris/pengaturan, tetap
-diedit langsung di Sheet seperti dijelaskan di `PANDUAN-SHEET.md`.
+Tab `DESA`, `TESTIMONI`, dan `KATEGORI` isinya cuma sedikit baris/
+pengaturan, tetap diedit langsung di `data/katalog.js` lewat GitHub
+(`PANDUAN-UPDATE.md`) -- atau lewat Google Sheet kalau desa memang
+lebih suka begitu, itu satu-satunya bagian yang masih opsional lewat
+Sheet (lihat `PANDUAN-SHEET.md`).
 
-## 4. Statistik kunjungan & klik-WhatsApp
+## Statistik kunjungan & klik-WhatsApp
 
 Bagian **Statistik** di bawah Data/Form (muncul juga setelah berhasil
-Masuk) menunjukkan grafik kunjungan halaman toko & klik tombol WhatsApp,
-per toko dan 14 hari terakhir. Klik **Muat Statistik** untuk memuatnya --
-data ini dicatat langsung dari situs publik (tidak lewat GitHub Actions),
-jadi selalu bisa dimuat ulang tanpa menunggu sinkron.
+Masuk lewat kredensial Apps Script) menunjukkan grafik kunjungan halaman
+toko & klik tombol WhatsApp, per toko dan 14 hari terakhir. Klik **Muat
+Statistik** untuk memuatnya -- disimpan sebagai angka berjalan (total +
+rekap 14 hari) di `PropertiesService` Apps Script, jadi selalu bisa
+dimuat ulang seketika tanpa perlu menyisir data mentah.
 
 **Supaya statistik ini benar-benar tercatat**, isi konstanta
 `URL_STATISTIK` di `assets/app.js` DAN `assets/toko-saya.js` dengan Web
@@ -127,152 +216,218 @@ App URL yang sama dipakai di atas (dua-duanya harus sama). Selama masih
 `"GANTI_URL_APPS_SCRIPT"`, situs publik tidak mencatat apa-apa (tidak
 error, cuma diam saja).
 
-## 5. Kode akses toko & halaman "Toko Saya"
+## Kode akses toko & halaman "Toko Saya"
 
 Tiap pemilik UMKM bisa lihat statistik tokonya sendiri dan mengatur
 promo yang tampil di halaman profil tokonya, lewat `toko-saya.html` --
-TANPA perlu kata sandi admin. Caranya:
+TANPA perlu kata sandi admin ataupun token GitHub. Caranya:
 
-1. Di admin.html, pilih Jenis data **Kode akses toko**, klik **+ Tambah
-   Baru**.
-2. Isi **Slug UMKM** (harus sama persis dengan slug tokonya) dan **Kode
-   akses** bebas pilihan sendiri (tidak harus rumit, cukup mudah diingat
-   pemilik tokonya).
+1. Di admin.html (kredensial Apps Script), pilih Jenis data **Kode akses
+   toko**, klik **+ Tambah Baru**.
+2. Isi **Slug UMKM** (harus sama persis dengan slug tokonya di GitHub)
+   dan **Kode akses** bebas pilihan sendiri (tidak harus rumit, cukup
+   mudah diingat pemilik tokonya).
 3. Simpan, lalu kabari pemilik usahanya: alamat
    `https://<akun>.github.io/katalog-umkm-sadomas/toko-saya.html`, nama
    tokonya, dan kode aksesnya -- lewat WhatsApp atau langsung, bukan grup
    umum.
 
 Pemilik toko masuk dengan memilih nama tokonya + kode akses. Promo yang
-disimpan lewat halaman itu tampil di situs publik sekitar 30-60 menit
-kemudian (menunggu sinkron terjadwal, sama seperti perubahan lewat
-admin.html), bukan langsung seketika.
+disimpan lewat halaman itu tampil di situs publik hampir seketika (ikut
+GitHub Pages terbit ulang, sama seperti data lain sekarang) -- Kode
+Akses-nya sendiri TIDAK pernah menyentuh GitHub sama sekali (tetap
+privat di Apps Script).
 
-## 6. Mengunggah foto lewat form admin
+## Mengunggah foto lewat form admin
 
 Kolom **Foto utama**, **Foto lokasi**, dan foto galeri (di UMKM, Produk,
 Wisata) punya dua cara diisi, berdampingan:
 
-1. **Unggah langsung** -- klik **Choose File**, pilih foto dari HP/komputer.
-   Foto dikecilkan otomatis di peramban (maksimum sisi 1600px, dimampatkan
-   ke JPEG) lalu dikirim ke Apps Script, yang menyimpannya ke sebuah folder
-   Google Drive bernama **"Katalog UMKM Sadomas - Foto"** (dibuat otomatis
-   di Drive akun yang dipakai men-deploy Apps Script, saat unggahan
-   pertama). Kolom teksnya otomatis terisi URL Drive hasil unggahan, dan
-   muncul pratinjau kecil di bawahnya.
-2. **Ketik manual** -- seperti sebelumnya, ketik nama berkas yang sudah ada
-   di folder `assets/img/` repositori GitHub (untuk foto lama/bawaan).
+1. **Unggah langsung** -- klik **Choose File**, pilih foto dari
+   HP/komputer. Foto dikecilkan otomatis di peramban (maksimum sisi
+   1600px, dimampatkan ke JPEG), lalu dikirim lewat GitHub Contents API
+   (pakai Token GitHub dari Bagian A) langsung ke folder `assets/img/`
+   repositori ini, dengan nama unik berawalan waktu unggah. Kolom
+   teksnya otomatis terisi nama berkas itu, dan muncul pratinjau kecil
+   di bawahnya.
+2. **Ketik manual** -- ketik nama berkas yang sudah ada di folder
+   `assets/img/` (untuk foto lama/bawaan, atau yang diunggah manual
+   lewat GitHub).
 
-Kedua cara boleh dicampur bebas antar baris data -- sebagian foto lama tetap
-berupa nama berkas, foto baru berupa URL Drive, keduanya tampil sama-sama
-benar di katalog publik.
+Karena butuh Token GitHub, unggah foto HANYA bisa dipakai kalau
+kredensial GitHub (Bagian A3) sudah diisi -- kalau belum, tombol
+**Choose File** akan menampilkan pesan jelas memintanya diisi dulu.
 
-**Foto yang diunggah TIDAK ikut alur sinkron GitHub Actions** -- begitu
-tersimpan ke Drive, URL-nya langsung valid. Yang tetap menunggu sinkron
-30-60 menit hanyalah munculnya URL itu di katalog publik (sama seperti
-kolom data lain yang diubah lewat admin.html).
-
-Catatan keandalan: `drive.google.com/uc?export=view` adalah cara resmi
-Google untuk menyajikan isi berkas Drive yang dibagikan publik, tapi bukan
-CDN khusus gambar -- untuk katalog skala desa dengan pengunjung wajar ini
-lebih dari cukup. Kalau suatu saat foto sering gagal tampil karena lalu
-lintas yang sangat tinggi, pindahkan foto itu manual ke `assets/img/` lewat
-GitHub dan ganti isian kolomnya jadi nama berkas.
+**Foto yang diunggah adalah COMMIT GitHub sungguhan**, sama seperti
+menambah berkas manual lewat GitHub -- muncul di riwayat (History) repo,
+dan tampil di katalog publik hampir seketika.
 
 ## Soal keamanan -- baca ini
 
-`admin.html` **bisa dibuka siapa saja yang tahu alamatnya** -- GitHub Pages
-tidak punya sistem login. Halaman ini ditautkan lewat ikon gembok di pojok
-kanan atas situs untuk kemudahan pengurus, tapi itu bukan pengaman
-sungguhan (siapa pun boleh mengeklik ikon itu, bukan cuma pengurus). Layar
-**Masuk** di depannya juga bukan login sungguhan (tidak ada akun per orang)
--- tetap satu kata sandi yang sama dipakai bersama semua pengurus.
+`admin.html` **bisa dibuka siapa saja yang tahu alamatnya** -- GitHub
+Pages tidak punya sistem login. Halaman ini ditautkan lewat ikon gembok
+di pojok kanan atas situs untuk kemudahan pengurus, tapi itu bukan
+pengaman sungguhan (siapa pun boleh mengeklik ikon itu, bukan cuma
+pengurus). Layar **Masuk** di depannya juga bukan login sungguhan (tidak
+ada akun per orang) -- kredensialnya dipakai bersama semua pengurus yang
+berwenang.
 
-Yang **benar-benar** mencegah orang asing menulis data adalah pengecekan
-kata sandi di `Code.gs` (dijalankan di server Google, bukan di halaman ini).
-Layar Masuk memeriksa kata sandi ke server itu juga (aksi `cekSandi`)
-sebelum menampilkan bagian Data/Form -- jadi kalau kata sandinya sudah
-diganti (lihat bagian "kalau bocor" di bawah), sesi yang kebetulan masih
-tersimpan di peramban lama otomatis ditolak lagi, tidak diam-diam tetap
-terbuka. Tanpa kata sandi yang benar, permintaan tambah/ubah/hapus akan
-ditolak. Membaca data (tombol Muat Daftar) tidak perlu kata sandi -- datanya
-sama dengan yang sudah publik di halaman katalog.
+**Dua kredensial, dua gerbang berbeda:**
+
+- **Token GitHub** (UMKM/Produk/Wisata + foto, Bagian A) -- diperiksa
+  oleh GitHub sendiri setiap panggilan (bukan oleh kode di repositori
+  ini). Token yang salah/kedaluwarsa/dicabut langsung ditolak GitHub
+  dengan status 401/403, admin.js menampilkannya sebagai pesan galat.
+  Karena dibatasi fine-grained ke satu repositori + izin Contents saja,
+  token yang bocor tidak bisa dipakai membuka repositori lain atau
+  mengubah pengaturan repo ini (Settings, Actions, dst.).
+- **Kata sandi admin** (Ulasan/Promo/Kode Akses/Statistik, Bagian B) --
+  diperiksa oleh `Code.gs` di server Google, lewat aksi `cekSandi`
+  sebelum menampilkan bagian itu. Kalau sudah diganti (lihat "kalau
+  bocor" di bawah), sesi lama yang kebetulan masih tersimpan di
+  peramban otomatis ditolak lagi.
+
+Ada JUGA token GitHub KETIGA (Bagian B2) yang dipegang Apps Script
+sendiri, bukan admin.js -- token itu TIDAK PERNAH terlihat siapa pun
+di peramban, jadi bukan bagian dari "dua kredensial" yang admin pegang.
+
+Tanpa kredensial yang benar, permintaan tambah/ubah/hapus (di kedua
+gerbang) akan ditolak. Membaca data (tombol Muat Daftar) untuk tab
+publik (UMKM/Produk/Wisata di GitHub, Ulasan lewat Apps Script) tidak
+perlu kredensial apa pun -- datanya sama dengan yang sudah publik di
+halaman katalog. Promo & Kode Akses dikecualikan untuk moderasi admin
+(`bacaPromoAdmin`/`daftarKodeAkses` WAJIB kata sandi) -- Kode Akses
+khususnya TIDAK PERNAH bisa dibaca lewat cara lain apa pun (tidak ada
+di GitHub sama sekali) supaya kode tiap toko tidak pernah "publik".
 
 Tombol **Keluar** (muncul setelah berhasil masuk) mengunci lagi halamannya
-dan menghapus kata sandi yang sempat diingat di peramban itu -- pakai ini
-kalau memakai HP/komputer bersama.
+dan menghapus kedua kredensial yang sempat diingat di peramban itu --
+pakai ini kalau memakai HP/komputer bersama.
 
-**`toko-saya.html` memakai model yang berbeda**, bukan kata sandi admin:
-tiap toko punya `kode` akses sendiri (tab `AKSES_UMKM`), dicek ulang ke
-server tiap kali dipakai (tidak pernah diingat di peramban). Ini juga
-bukan "login" sungguhan per orang -- satu kode dipakai bersama untuk satu
-toko, sama seperti kata sandi admin dipakai bersama semua pengurus. Tab
-`AKSES_UMKM` sendiri, berbeda dari tab lain, TIDAK bisa dibaca tanpa kata
-sandi admin (lihat `TAB_RAHASIA` di `Code.gs`) -- supaya kode tiap toko
-tidak ikut "publik" seperti data katalog lainnya.
+**`toko-saya.html` memakai model yang berbeda lagi**, bukan kata sandi
+admin maupun token GitHub: tiap toko punya `kode` akses sendiri
+(disimpan di `PropertiesService` Apps Script), dicek ulang ke server
+tiap kali dipakai (tidak pernah diingat di peramban). Ini juga bukan
+"login" sungguhan per orang -- satu kode dipakai bersama untuk satu
+toko, sama seperti kredensial admin dipakai bersama semua pengurus.
 
 Dua aksi lain (`catatStatistik` untuk mencatat kunjungan/klik-WA, dan
-`kirimUlasan` untuk ulasan pembeli) sengaja TIDAK butuh kata sandi maupun
-kode apa pun -- keduanya dipanggil otomatis dari situs publik untuk SEMUA
-pengunjung. Validasinya diperketat di `Code.gs` (slug harus toko/produk
-yang benar-benar ada, rating harus 1-5, dst.) supaya tidak jadi jalan
-belakang menulis data bebas.
+`kirimUlasan` untuk ulasan pembeli) sengaja TIDAK butuh kredensial APA
+PUN -- keduanya dipanggil otomatis dari situs publik untuk SEMUA
+pengunjung. Validasinya diperketat di `Code.gs`: slug UMKM/produk dicek
+BENAR-BENAR ADA dengan membaca `data/db/*.json` langsung dari GitHub
+(berkas publik, tidak perlu token), rating harus 1-5, dst. -- supaya
+tidak jadi jalan belakang menulis data bebas. `kirimUlasan` yang lolos
+validasi tetap ditulis Apps Script (pakai token server di Bagian B2),
+BUKAN oleh pengunjung langsung ke GitHub.
 
 Karena itu:
 
-- **Jangan sebarkan alamat `admin.html` maupun kata sandinya** ke luar
-  pengurus yang berwenang.
-- Kalau kata sandi bocor atau dicurigai, ganti secepatnya:
+- **Jangan sebarkan alamat `admin.html`, Token GitHub, maupun kata
+  sandi Apps Script** ke luar pengurus yang berwenang.
+- Kalau Token GitHub (Bagian A, milik admin) bocor atau dicurigai: buka
+  `https://github.com/settings/tokens?type=beta`, cari tokennya, klik
+  **Delete**, lalu buat token baru (Bagian A1) dan bagikan ulang ke
+  pengurus yang berhak.
+- Kalau token GitHub milik SERVER (Bagian B2) bocor atau dicurigai:
+  sama seperti di atas (Delete + buat baru), lalu perbarui nilainya di
+  **Project Settings > Script Properties** Apps Script (tidak perlu
+  deploy ulang -- Script Properties dibaca langsung tiap panggilan).
+- Kalau kata sandi Apps Script bocor atau dicurigai, ganti secepatnya:
   1. Buka Apps Script, ubah nilai `KATA_SANDI` di `Code.gs`, simpan.
   2. **Deploy > Manage deployments** -> klik ikon pensil pada deployment
      yang aktif -> Version: **New version** -> **Deploy**.
      (Ini memperbarui Web App yang sudah jalan supaya memakai kata sandi
      baru, **tanpa** mengubah alamat URL-nya -- jadi kata sandi lama
      langsung tidak berlaku lagi.)
-  3. Beri tahu kata sandi baru ke pengurus yang berhak lewat jalur yang
+  3. Beri tahu kredensial baru ke pengurus yang berhak lewat jalur yang
      aman (bukan grup WhatsApp umum).
 
 ## Kalau ada dua orang mengubah bersamaan
 
-Nomor baris yang dipakai form ini untuk menemukan data (supaya bisa
-ubah/hapus tanpa keliru baris) bisa bergeser kalau ada baris lain yang
-dihapus di saat bersamaan oleh orang lain. Kalau muncul pesan "Baris tidak
-ditemukan -- mungkin sudah diubah/dihapus orang lain": klik **Muat Daftar**
-lagi supaya daftarnya segar, lalu ulangi.
+**Untuk UMKM/Produk/Wisata (GitHub, ditulis peramban admin langsung)**:
+kalau dua admin menyimpan nyaris bersamaan, yang kedua akan ditolak
+GitHub dengan pesan "Data sudah berubah sejak dimuat -- muat ulang
+daftarnya lalu coba lagi." Klik **Muat Daftar** lagi supaya datanya
+segar, lalu ulangi perubahan. Ini berlaku untuk SELURUH tab itu (bukan
+cuma baris yang sama) -- karena satu tab tersimpan sebagai satu berkas
+GitHub.
+
+**Untuk Ulasan/Promo (GitHub, ditulis Apps Script)**: Apps Script
+mencoba ulang otomatis sampai 3 kali kalau kena konflik seperti di atas
+-- pengunjung/admin tidak perlu melakukan apa-apa, biasanya langsung
+berhasil di percobaan berikutnya dalam hitungan detik. Cuma kalau
+tabrakannya luar biasa sering (sangat tidak mungkin untuk katalog
+sekelas desa), permintaan akan gagal dengan pesan galat biasa.
+
+**Untuk Kode Akses & Statistik (PropertiesService)**: dilindungi
+`LockService` (permintaan yang datang nyaris bersamaan antre singkat,
+bukan saling menimpa) -- tidak ada yang perlu dilakukan pengguna.
 
 ## Kalau ada galat
 
-- **"Isi alamat Web App dan kata sandi dulu"** -- kedua kolom di layar Masuk
-  wajib diisi sebelum klik **Masuk**.
-- **"Kata sandi salah"** -- cocokkan lagi dengan `KATA_SANDI` di `Code.gs`,
-  ingat huruf besar/kecil ikut diperhatikan.
-- **"Sesi tersimpan tidak berlaku lagi"** -- muncul otomatis saat membuka
-  halaman kalau kata sandi yang diingat di peramban sudah tidak cocok lagi
-  (biasanya karena `KATA_SANDI` baru saja diganti). Masuk ulang dengan kata
-  sandi yang baru.
-- **"Tab '...' tidak dikenal"** -- nama tab di Sheet berubah/typo. Nama tab
-  harus persis `UMKM`, `PRODUK`, `WISATA`, `ULASAN`, `PROMO`, `AKSES_UMKM`.
+- **"Isi Pemilik GitHub, Repositori, dan Token GitHub di bagian
+  Pengaturan dulu."** -- muncul kalau membuka tab UMKM/Produk/Wisata
+  tapi belum mengisi kredensial GitHub. Lengkapi Bagian A3 lalu masuk
+  ulang.
+- **"Data sudah berubah sejak dimuat..."** -- lihat "Kalau ada dua
+  orang mengubah bersamaan" di atas.
+- **Token GitHub ditolak (401/403) saat Masuk** -- token salah ketik,
+  sudah kedaluwarsa, sudah dicabut (revoked), atau Pemilik/Repositori
+  yang diisi tidak cocok dengan repo yang diizinkan token itu. Buat
+  token baru (Bagian A1) kalau perlu.
+- **"Kata sandi salah"** (bagian Apps Script) -- cocokkan lagi dengan
+  `KATA_SANDI` di `Code.gs`, ingat huruf besar/kecil ikut diperhatikan.
+- **"Sesi tersimpan tidak semuanya berlaku lagi -- ..."** -- muncul
+  otomatis saat membuka halaman kalau salah satu (atau kedua) kredensial
+  yang diingat di peramban sudah tidak cocok lagi. Pesan menyebutkan sisi
+  mana (Apps Script/GitHub) yang bermasalah. Masuk ulang dengan
+  kredensial yang benar untuk sisi itu.
 - **Bagian Statistik selalu kosong / "Belum ada data kunjungan tercatat"**
   -- kemungkinan `URL_STATISTIK` di `assets/app.js` masih
   `"GANTI_URL_APPS_SCRIPT"` (situs publik belum pernah mencatat apa-apa),
   atau memang belum ada pengunjung sejak diaktifkan.
 - **Di `toko-saya.html`, "Slug atau kode akses salah"** -- cocokkan lagi
-  dengan baris di tab `AKSES_UMKM`; ingat besar/kecil huruf ikut
-  diperhatikan.
+  kode aksesnya lewat menu Kode Akses Toko di admin.html; ingat
+  besar/kecil huruf ikut diperhatikan.
 - **Di `toko-saya.html`/form ulasan produk, "Fitur ini belum aktif"** --
   `URL_STATISTIK` di `assets/toko-saya.js`/`assets/app.js` masih belum
   diisi alamat Web App yang benar.
-- Error CORS di console peramban (`blocked by CORS policy`) -- coba deploy
-  ulang Web App-nya (langkah 2), pastikan "Who has access" masih **Anyone**.
-- **"Gagal mengunggah: ..." di bawah kolom foto** -- kalau pesannya
-  menyebut "Kata sandi salah", isi dulu kata sandi admin di bagian
-  Pengaturan/Masuk (unggah foto butuh sandi, sama seperti simpan data
-  lain). Kalau menyebut jenis berkas tidak didukung, pilih berkas
-  JPG/PNG/WEBP. Kalau ini muncul pertama kali setelah deploy ulang
-  `Code.gs`, kemungkinan Google belum diberi izin akses Drive -- ulangi
-  **Deploy > Manage deployments** dan pastikan izin ("Authorize access")
-  sudah di-**Allow**.
-- Kolom `wa`/`kontak` tetap sebaiknya diperiksa sesekali langsung di Sheet --
-  `Code.gs` sudah memaksa format sel jadi Teks Biasa sebelum menulis nomor,
-  tapi kalau ada keraguan, buka selnya dan pastikan tidak berubah jadi
-  notasi ilmiah (contoh `6.28123E+11`).
+- **Ulasan pembeli/statistik ditolak diam-diam padahal slug-nya benar**
+  -- Apps Script gagal membaca `data/db/umkm.json`/`produk.json` dari
+  GitHub. Cocokkan `GITHUB_PEMILIK`/`GITHUB_REPO` di `Code.gs` (Bagian
+  B1 langkah 7) dengan repo yang sebenarnya, dan pastikan repo itu
+  publik (bukan private -- ini dibaca tanpa token).
+- **"GITHUB_TOKEN belum diisi..."** saat menyimpan Ulasan/Promo lewat
+  admin.html, atau ulasan pembeli gagal masuk -- lengkapi Bagian B2
+  (Script Properties), bukan Bagian A3 (itu token yang berbeda).
+- Error CORS di console peramban (`blocked by CORS policy`) -- untuk
+  sisi Apps Script, coba deploy ulang Web App-nya (Bagian B3), pastikan
+  "Who has access" masih **Anyone**. GitHub Contents API sendiri sudah
+  mendukung CORS secara resmi, jadi error CORS di sisi GitHub biasanya
+  menandakan masalah lain (lihat pesan galatnya).
+- **"Gagal mengunggah: ..." di bawah kolom foto** -- kalau menyebut
+  kredensial GitHub belum diisi, lengkapi Bagian A3. Kalau menyebut
+  berkas gagal (401/403), berlaku aturan yang sama seperti "Token GitHub
+  ditolak" di atas.
+
+## Pindah dari versi lama (data lewat Google Sheet)
+
+Kalau situs ini sebelumnya sudah dipakai dengan versi lama (Apps
+Script ditempel ke Google Sheet, sebagian/semua data lewat tab Sheet):
+
+1. Jalankan `node scripts/katalog-ke-db.mjs` -- ini membaca
+   `data/katalog.js` yang SEDANG TAMPIL di situs dan menulis
+   `data/db/umkm.json`/`produk.json`/`wisata.json`/`promo.json`/
+   `ulasan.json` darinya, supaya data yang sudah ada tidak hilang.
+2. Commit & push kelima berkas itu ke GitHub.
+3. Ikuti Bagian A di atas (buat token, isi kredensial di admin.html).
+4. Buat Standalone Script baru (Bagian B1-B3) -- JANGAN pakai lagi Apps
+   Script lama yang ditempel ke Sheet, karena bentuk `Code.gs` sudah
+   beda total (tidak ada lagi konsep tab Sheet sama sekali).
+5. Kode Akses Toko yang sudah ada di tab `AKSES_UMKM` Sheet lama perlu
+   diketik ulang manual satu-satu lewat menu "Kode akses toko" di
+   admin.html (Standalone Script baru) -- tidak ada migrasi otomatis
+   untuk ini karena memang rahasia, tidak tersimpan di `data/katalog.js`.
+6. Sheet lama boleh dihapus/diabaikan sepenuhnya setelah ini -- tidak
+   ada lagi yang membacanya.

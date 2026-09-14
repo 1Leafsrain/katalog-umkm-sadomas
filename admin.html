@@ -152,6 +152,22 @@
         font-size: 0.85rem;
         color: var(--redup);
       }
+      .pemisah-kredensial {
+        border: none;
+        border-top: 1px dashed var(--garis);
+        margin: 18px 0 14px;
+      }
+      .judul-kredensial {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--hijau);
+        margin: 0 0 6px;
+      }
+      .petunjuk-sumber {
+        font-size: 0.82rem;
+        color: var(--redup);
+        margin: -6px 0 12px;
+      }
     </style>
   </head>
 
@@ -159,37 +175,62 @@
     <p><a href="index.html">&larr; Kembali ke situs</a></p>
     <h1>Admin Katalog UMKM Desa Sadomas</h1>
     <p class="catatan">
-      Halaman ini menulis langsung ke Google Sheet lewat Apps Script Web App.
-      Perubahan baru tampil di katalog publik setelah GitHub Actions
-      menariknya (jadwal atau tombol <strong>Run workflow</strong>) -- lihat
-      <code>PANDUAN-ADMIN.md</code>.
+      UMKM/Produk/Wisata (termasuk foto) tersimpan langsung di GitHub lewat
+      token pribadi Anda, tampil di katalog publik hampir seketika. Ulasan
+      Pembeli/Promo/Kode Akses Toko/Statistik lewat Apps Script (tanpa Google
+      Sheet sama sekali) -- Ulasan &amp; Promo ikut tersimpan sebagai berkas
+      di GitHub (ditulis Apps Script, bukan Anda langsung), jadi tetap tampil
+      hampir seketika juga; Kode Akses &amp; Statistik tersimpan privat di
+      Apps Script sendiri. Lihat <code>PANDUAN-ADMIN.md</code> untuk
+      penjelasan lengkapnya.
     </p>
 
     <fieldset id="fieldset-masuk">
       <legend id="masuk-judul">Masuk</legend>
       <p class="catatan" id="masuk-keterangan">
-        Isi alamat Web App dan kata sandi admin untuk masuk. Satu kata sandi
-        dipakai bersama oleh semua pengurus -- lihat <code>PANDUAN-ADMIN.md</code>
-        kalau belum pernah diisi sebelumnya.
+        Isi salah satu atau kedua kredensial di bawah, sesuai jenis data yang
+        mau diubah -- lihat <code>PANDUAN-ADMIN.md</code> kalau belum pernah
+        diisi sebelumnya.
       </p>
       <form id="form-pengaturan">
+        <p class="judul-kredensial">Untuk UMKM / Produk / Wisata (GitHub)</p>
+        <div class="f-baris">
+          <label for="g-pemilik">Pemilik GitHub</label>
+          <input id="g-pemilik" type="text" placeholder="contoh: 1leafsrain" autocomplete="off" />
+        </div>
+        <div class="f-baris">
+          <label for="g-repo">Repositori</label>
+          <input id="g-repo" type="text" placeholder="contoh: katalog-umkm-sadomas" autocomplete="off" />
+        </div>
+        <div class="f-baris">
+          <label for="g-token">Token GitHub</label>
+          <input id="g-token" type="password" autocomplete="off" placeholder="github_pat_..." />
+        </div>
+        <div class="baris-inline">
+          <input id="g-ingat" type="checkbox" />
+          <label for="g-ingat">Ingat token di peramban ini</label>
+        </div>
+
+        <hr class="pemisah-kredensial" />
+
+        <p class="judul-kredensial">Untuk Ulasan / Promo / Kode Akses / Statistik (Apps Script)</p>
         <div class="f-baris">
           <label for="p-url">Alamat Web App</label>
           <input
             id="p-url"
             type="url"
             placeholder="https://script.google.com/macros/s/.../exec"
-            required
           />
         </div>
         <div class="f-baris">
           <label for="p-sandi">Kata sandi admin</label>
-          <input id="p-sandi" type="password" autocomplete="off" required />
+          <input id="p-sandi" type="password" autocomplete="off" />
         </div>
         <div class="baris-inline">
           <input id="p-ingat" type="checkbox" />
           <label for="p-ingat">Ingat kata sandi di peramban ini</label>
         </div>
+
         <div class="form-baris-tombol">
           <button type="submit" id="btn-masuk">Masuk</button>
           <button type="button" class="sekunder" id="btn-keluar" hidden>
@@ -205,6 +246,7 @@
         <label for="pilih-tab">Jenis data</label>
         <select id="pilih-tab"></select>
       </div>
+      <p class="petunjuk-sumber" id="petunjuk-sumber"></p>
       <div class="form-baris-tombol">
         <button type="button" id="btn-muat">Muat Daftar</button>
         <button type="button" class="sekunder" id="btn-tambah-baru">
@@ -246,6 +288,7 @@
     </fieldset>
 
     <script src="assets/grafik.js"></script>
+    <script src="assets/foto-util.js"></script>
     <script src="assets/admin.js"></script>
   </body>
 </html>

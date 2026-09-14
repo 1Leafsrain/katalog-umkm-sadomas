@@ -4,10 +4,21 @@ name: Tarik data dari Google Sheet
 # di luar jam ramai itu wajar, bukan tanda ada yang rusak. Kalau warga
 # perlu perubahan tampil SEKARANG, pakai tombol "Run workflow" di tab
 # Actions, jangan menunggu jadwal.
+#
+# Trigger "push" ke data/db/** SENGAJA ditambahkan (beda dari jadwal
+# 30 menit di atas, yang cuma untuk sisi Sheet): setiap admin.js
+# menyimpan UMKM/Produk/Wisata lewat GitHub Contents API, itu ADALAH
+# commit ke data/db/*.json -- trigger ini membuat data/katalog.js ikut
+# disusun ulang seketika, bukan menunggu jadwal. TIDAK memicu jalan
+# berulang tanpa henti karena langkah commit di bawah cuma menyentuh
+# data/katalog.js & sitemap.xml, bukan data/db/**.
 on:
   schedule:
     - cron: "*/30 * * * *"
   workflow_dispatch: {}
+  push:
+    paths:
+      - "data/db/**"
 
 # Perlu "contents: write" supaya workflow ini boleh nge-commit
 # data/katalog.js yang baru ke repositori.

@@ -363,13 +363,16 @@ export function buatIsiBerkas({ DESA, TESTIMONI, KATEGORI, UMKM, PRODUK, WISATA 
     "/* ============================================================\n" +
     "   DATA KATALOG UMKM DESA SADOMAS\n" +
     "   ------------------------------------------------------------\n" +
-    "   BERKAS INI DIBUAT OTOMATIS oleh GitHub Actions dari Google\n" +
-    "   Sheet, setiap kali Sheet berubah dan workflow berjalan.\n" +
+    "   BERKAS INI DIBUAT OTOMATIS oleh GitHub Actions, disusun dari\n" +
+    "   data/db/*.json (UMKM/PRODUK/WISATA/ULASAN/PROMO -- lihat\n" +
+    "   PANDUAN-ADMIN.md) dan, kalau mode Sheet dipakai, dari Google\n" +
+    "   Sheet untuk DESA/TESTIMONI/KATEGORI (lihat PANDUAN-SHEET.md).\n" +
     "\n" +
     "   JANGAN DIEDIT LANGSUNG DI SINI -- perubahan akan tertimpa pada\n" +
-    "   jadwal berikutnya. Untuk mengubah isi katalog, edit Google\n" +
-    "   Sheet-nya. Lihat PANDUAN-SHEET.md untuk kolom apa saja yang\n" +
-    "   tersedia di tiap tab.\n" +
+    "   jalan berikutnya. Untuk mengubah isi katalog, edit lewat\n" +
+    "   admin.html (UMKM/Produk/Wisata/Ulasan/Promo/Kode Akses), atau\n" +
+    "   Google Sheet untuk DESA/TESTIMONI/KATEGORI kalau mode itu\n" +
+    "   dipakai.\n" +
     "\n" +
     "   Riwayat perubahan bisa dilihat lewat tombol History pada\n" +
     "   berkas ini di GitHub.\n" +

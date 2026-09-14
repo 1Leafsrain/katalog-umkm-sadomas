@@ -3,11 +3,21 @@
 Ditujukan untuk pengelola situs dari Desa Sadomas. Tidak perlu bisa memrogram.
 Semua perubahan isi dilakukan di satu berkas: **`data/katalog.js`**.
 
-> Ada juga cara memperbarui isi lewat Google Sheet tanpa akun GitHub sama
-> sekali -- lihat `PANDUAN-SHEET.md`. Kalau desa sudah memakai cara itu
-> (variabel `SHEET_ID` sudah diisi di repositori), `data/katalog.js` dibuat
-> otomatis dan **jangan diedit langsung** -- panduan di berkas ini jadi tidak
-> berlaku, pakai `PANDUAN-SHEET.md` saja.
+> **UMKM, Produk, dan Wisata (termasuk foto) TIDAK lagi diedit di sini.**
+> Ketiganya tersimpan di `data/db/umkm.json`/`produk.json`/`wisata.json`,
+> diedit lewat form admin (`admin.html`, lihat `PANDUAN-ADMIN.md`) atau
+> langsung lewat GitHub di ketiga berkas JSON itu -- BUKAN di
+> `data/katalog.js`, yang untuk bagian ini disusun ulang otomatis dan
+> perubahan manualnya akan tertimpa. Panduan di berkas ini (`const UMKM`,
+> `const PRODUK`, `const WISATA` di bawah) hanya berlaku untuk situs versi
+> lama yang belum pindah ke penyimpanan GitHub.
+>
+> Ada juga cara memperbarui `DESA`/`TESTIMONI`/`KATEGORI`/`ULASAN`/`PROMO`
+> lewat Google Sheet tanpa akun GitHub sama sekali -- lihat
+> `PANDUAN-SHEET.md`. Kalau desa sudah memakai cara itu (variabel
+> `SHEET_ID` sudah diisi di repositori), bagian-bagian itu di
+> `data/katalog.js` dibuat otomatis dan **jangan diedit langsung** --
+> pakai `PANDUAN-SHEET.md` saja untuk bagian tersebut.
 
 ## Membuka berkas untuk diedit
 
