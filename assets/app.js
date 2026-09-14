@@ -364,6 +364,9 @@ function susunKepala() {
     '<a class="bulat" href="katalog.html" aria-label="Cari produk">' +
     IKON.cari +
     "</a>" +
+    '<a class="bulat" href="toko-saya.html" aria-label="Toko Saya" title="Toko Saya">' +
+    IKON.toko +
+    "</a>" +
     '<a class="bulat" href="admin.html" aria-label="Admin" title="Admin">' +
     IKON.kunci +
     "</a>" +
