@@ -93,6 +93,17 @@ function aman(teks) {
   );
 }
 
+// Baris kosong ganda (\n\n) memecah teks jadi beberapa <p> -- dipakai
+// untuk teks panjang seperti paragrafHero yang sengaja ditulis
+// berparagraf, bukan satu blok teks.
+function paragraf(teks, kelas) {
+  return String(teks == null ? "" : teks)
+    .split(/\n{2,}/)
+    .filter((p) => p.trim())
+    .map((p) => '<p class="' + kelas + '">' + aman(p.trim()) + "</p>")
+    .join("");
+}
+
 /* ---------- SEO: judul, deskripsi, canonical, Open Graph, data terstruktur ----------
    umkm.html / produk.html / destinasi.html masing-masing SATU berkas dipakai
    bergantian untuk banyak UMKM/produk/wisata lewat parameter URL (?u=, ?p=,
@@ -699,9 +710,9 @@ function halamanBeranda() {
     "</span>" +
     "<div><h1>" +
     aman(DESA.judulHero) +
-    '</h1><p class="hero__teks">' +
-    aman(DESA.paragrafHero) +
-    "</p></div>" +
+    "</h1>" +
+    paragraf(DESA.paragrafHero, "hero__teks") +
+    "</div>" +
     '<div class="hero__aksi">' +
     '<a class="tombol tombol--jingga" href="katalog.html">Lihat Katalog Produk</a>' +
     '<a class="tombol tombol--garis" href="#profil">Tentang Desa</a>' +

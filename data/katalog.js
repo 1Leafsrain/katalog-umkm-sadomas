@@ -22,8 +22,8 @@ const DESA = {
   "kabupaten": "Majalengka",
   "tagline": "Portal UMKM Desa",
   "sapaan": "Selamat datang di Sadomas",
-  "judulHero": "Karya warga Sadomas, dari dapur dan kebun sendiri",
-  "paragrafHero": "Gabin tape, opak, keripik melinjo, sampai bibit palawija dan buah musiman dari kaki Gunung Ciremai. Semua dijual langsung oleh warga Desa Sadomas, Kecamatan Rajagaluh, Kabupaten Majalengka. Pilih produknya, lalu pesan lewat WhatsApp ke pemiliknya.",
+  "judulHero": "Jelajahi Potensi Desa Sadomas, Belanja Produk Lokal Langsung dari Warga",
+  "paragrafHero": "Desa Sadomas, yang terletak di Kecamatan Rajagaluh, Kabupaten Majalengka, tidak hanya dikenal dengan lingkungan desanya yang asri di kawasan kaki Gunung Ciremai, tetapi juga menyimpan segudang potensi luar biasa di sektor Usaha Mikro, Kecil, dan Menengah (UMKM).\n\nKreativitas dan kegigihan warga desa telah melahirkan berbagai produk lokal unggulan, mulai dari ragam olahan kuliner tradisional, kerajinan tangan bernilai seni, hingga ikon agrowisata yang menarik minat wisatawan.\n\nSemua karya dan produk ini dijual langsung oleh warga Desa Sadomas. Dukung kemajuan UMKM lokal dengan cara yang mudah: pilih produknya, lalu pesan lewat WhatsApp langsung ke pemiliknya.",
   "alamat": "Jl. Syeh Maulana Mangsur No. 01, Desa Sadomas, Rajagaluh, Majalengka",
   "waDesa": "GANTI_NOMOR_WA_DESA",
   "email": "kkmsadomas@gmail.com",
@@ -191,7 +191,7 @@ const UMKM = [
     "jamBuka": "GANTI: contoh Setiap hari, 08.00-17.00 WIB",
     "pengiriman": "GANTI: contoh Ambil di tempat, kirim dalam kota",
     "fotoLokasi": "",
-    "deskripsi": "Kerupuk dari kulit sapi pilihan, direbus lalu dijemur sebelum digoreng renyah. Diproduksi rumahan dengan merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT. Tersedia beberapa ukuran kemasan, dari bungkus kecil sampai 1,5 kilogram.",
+    "deskripsi": "Kerupuk dari kulit sapi pilihan, direbus lalu dijemur sebelum digoreng renyah. Diproduksi rumahan dengan merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT. Dijual mentah maupun siap makan, tersedia beberapa ukuran kemasan dari bungkus kecil sampai 1 kilogram.",
     "promo": {
       "teks": "",
       "aktif": false
@@ -355,38 +355,6 @@ const PRODUK = [
     ]
   },
   {
-    "slug": "gabin-tape-cokelat",
-    "nama": "Gabin Tape Cokelat",
-    "umkm": "gabin-tape-wizura",
-    "kategori": "kuliner",
-    "harga": "Rp18.000 – Rp22.000",
-    "satuan": "per kotak isi 10 buah",
-    "foto": "gabin-tapai.jpg",
-    "penilaian": 0,
-    "galeri": [],
-    "ulasan": [],
-    "unggulan": true,
-    "deskripsi": "Lelehan cokelat di dalam tape. Varian paling disukai anak-anak dan pembeli yang belum terbiasa dengan rasa tape.",
-    "rincian": [
-      [
-        "Bahan utama",
-        "Tape singkong, cokelat, gabin"
-      ],
-      [
-        "Isi kemasan",
-        "10 buah per kotak"
-      ],
-      [
-        "Daya tahan",
-        "3 hari suhu ruang"
-      ],
-      [
-        "Minimal pesan",
-        "1 kotak"
-      ]
-    ]
-  },
-  {
     "slug": "gabin-tape-original-kecil",
     "nama": "Gabin Tape Original Kecil",
     "umkm": "gabin-tape-wizura",
@@ -499,70 +467,6 @@ const PRODUK = [
       [
         "Bahan utama",
         "Tape singkong, ubi ungu, gabin"
-      ],
-      [
-        "Ukuran",
-        "Besar"
-      ],
-      [
-        "Daya tahan",
-        "3 hari suhu ruang"
-      ],
-      [
-        "Minimal pesan",
-        "1 buah"
-      ]
-    ]
-  },
-  {
-    "slug": "gabin-tape-cokelat-kecil",
-    "nama": "Gabin Tape Cokelat Kecil",
-    "umkm": "gabin-tape-wizura",
-    "kategori": "kuliner",
-    "harga": "Rp1.000",
-    "satuan": "per buah",
-    "foto": "gabin-tapai.jpg",
-    "penilaian": 0,
-    "galeri": [],
-    "ulasan": [],
-    "unggulan": false,
-    "deskripsi": "Lelehan cokelat di dalam tape, ukuran kecil, dijual satuan. Varian paling disukai anak-anak dan pembeli yang belum terbiasa dengan rasa tape.",
-    "rincian": [
-      [
-        "Bahan utama",
-        "Tape singkong, cokelat, gabin"
-      ],
-      [
-        "Ukuran",
-        "Kecil"
-      ],
-      [
-        "Daya tahan",
-        "3 hari suhu ruang"
-      ],
-      [
-        "Minimal pesan",
-        "1 buah"
-      ]
-    ]
-  },
-  {
-    "slug": "gabin-tape-cokelat-besar",
-    "nama": "Gabin Tape Cokelat Besar",
-    "umkm": "gabin-tape-wizura",
-    "kategori": "kuliner",
-    "harga": "Rp2.000",
-    "satuan": "per buah",
-    "foto": "gabin-tapai.jpg",
-    "penilaian": 0,
-    "galeri": [],
-    "ulasan": [],
-    "unggulan": false,
-    "deskripsi": "Lelehan cokelat di dalam tape, ukuran besar, dijual satuan. Varian paling disukai anak-anak dan pembeli yang belum terbiasa dengan rasa tape.",
-    "rincian": [
-      [
-        "Bahan utama",
-        "Tape singkong, cokelat, gabin"
       ],
       [
         "Ukuran",
@@ -999,18 +903,18 @@ const PRODUK = [
     ]
   },
   {
-    "slug": "kerupuk-kulit-sapi-1-5kg",
-    "nama": "Kerupuk Kulit Sapi 1,5 Kilogram",
+    "slug": "kerupuk-kulit-sapi-1kg",
+    "nama": "Kerupuk Kulit Sapi 1 Kilogram",
     "umkm": "kerupuk-kulit-sapi-sadomas",
     "kategori": "kuliner",
     "harga": "Rp170.000",
-    "satuan": "per 1,5 kilogram",
-    "foto": "kerupuk-kulit-1-5kg.jpeg",
+    "satuan": "per kilogram",
+    "foto": "kerupuk-kulit-1kg.jpeg",
     "penilaian": 0,
     "galeri": [],
     "ulasan": [],
     "unggulan": false,
-    "deskripsi": "Sudah digoreng renyah, dikemas dalam ukuran 1,5 kilogram, cocok untuk stok lebih banyak. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28.",
+    "deskripsi": "Sudah digoreng renyah, dikemas dalam ukuran 1 kilogram, cocok untuk stok lebih banyak. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28.",
     "rincian": [
       [
         "Bahan utama",
@@ -1026,7 +930,39 @@ const PRODUK = [
       ],
       [
         "Berat",
-        "1,5 kilogram"
+        "1 kilogram"
+      ]
+    ]
+  },
+  {
+    "slug": "kerupuk-kulit-sapi-mentah",
+    "nama": "Kerupuk Kulit Sapi Mentah",
+    "umkm": "kerupuk-kulit-sapi-sadomas",
+    "kategori": "kuliner",
+    "harga": "Rp16.000",
+    "satuan": "per pack",
+    "foto": "kerupuk-kulit-mentah.jpeg",
+    "penilaian": 0,
+    "galeri": [],
+    "ulasan": [],
+    "unggulan": false,
+    "deskripsi": "Kerupuk kulit sapi mentah, sudah direbus dan dijemur kering, belum digoreng -- tinggal digoreng sendiri di rumah. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28.",
+    "rincian": [
+      [
+        "Bahan utama",
+        "Kulit sapi pilihan"
+      ],
+      [
+        "Merek",
+        "RR Ratu"
+      ],
+      [
+        "Sertifikat",
+        "Halal Indonesia, P-IRT 2013210010707-28"
+      ],
+      [
+        "Minimal pesan",
+        "1 pack"
       ]
     ]
   },
