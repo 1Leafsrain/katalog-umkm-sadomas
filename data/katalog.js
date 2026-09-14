@@ -222,7 +222,7 @@ const UMKM = [
     "pemilik": "Ibu Yeti",
     "wa": "6289627934242",
     "alamat": "RT 04 / RW 02, Desa Sadomas",
-    "foto": "jajanan-bu-yeti-1.jpg",
+    "foto": "molen-bu-yeti.jpg",
     "penilaian": 0,
     "jamBuka": "Setiap hari kecuali libur, digoreng dini hari, tersedia di warung sekitar mulai pagi untuk sarapan",
     "pengiriman": "Dititipkan ke warung sekitar setiap pagi, atau ambil langsung di rumah (termasuk pemesan dari luar kota)",
@@ -383,6 +383,198 @@ const PRODUK = [
       [
         "Minimal pesan",
         "1 kotak"
+      ]
+    ]
+  },
+  {
+    "slug": "gabin-tape-original-kecil",
+    "nama": "Gabin Tape Original Kecil",
+    "umkm": "gabin-tape-wizura",
+    "kategori": "kuliner",
+    "harga": "Rp1.000",
+    "satuan": "per buah",
+    "foto": "gabin-tapai.jpg",
+    "penilaian": 0,
+    "galeri": [],
+    "ulasan": [],
+    "unggulan": false,
+    "deskripsi": "Rasa asli tanpa tambahan perisa, ukuran kecil, dijual satuan. Tape terasa manis asam, gabinnya renyah.",
+    "rincian": [
+      [
+        "Bahan utama",
+        "Tape singkong dan biskuit gabin"
+      ],
+      [
+        "Ukuran",
+        "Kecil"
+      ],
+      [
+        "Daya tahan",
+        "3 hari suhu ruang"
+      ],
+      [
+        "Minimal pesan",
+        "1 buah"
+      ]
+    ]
+  },
+  {
+    "slug": "gabin-tape-original-besar",
+    "nama": "Gabin Tape Original Besar",
+    "umkm": "gabin-tape-wizura",
+    "kategori": "kuliner",
+    "harga": "Rp2.000",
+    "satuan": "per buah",
+    "foto": "gabin-tapai.jpg",
+    "penilaian": 0,
+    "galeri": [],
+    "ulasan": [],
+    "unggulan": false,
+    "deskripsi": "Rasa asli tanpa tambahan perisa, ukuran besar, dijual satuan. Tape terasa manis asam, gabinnya renyah.",
+    "rincian": [
+      [
+        "Bahan utama",
+        "Tape singkong dan biskuit gabin"
+      ],
+      [
+        "Ukuran",
+        "Besar"
+      ],
+      [
+        "Daya tahan",
+        "3 hari suhu ruang"
+      ],
+      [
+        "Minimal pesan",
+        "1 buah"
+      ]
+    ]
+  },
+  {
+    "slug": "gabin-tape-ubi-ungu-kecil",
+    "nama": "Gabin Tape Ubi Ungu Kecil",
+    "umkm": "gabin-tape-wizura",
+    "kategori": "kuliner",
+    "harga": "Rp1.000",
+    "satuan": "per buah",
+    "foto": "gabin-tapai.jpg",
+    "penilaian": 0,
+    "galeri": [],
+    "ulasan": [],
+    "unggulan": false,
+    "deskripsi": "Varian ubi ungu, ukuran kecil, dijual satuan. Warnanya ungu alami dari ubi, rasanya lebih lembut dan tidak seasam varian original.",
+    "rincian": [
+      [
+        "Bahan utama",
+        "Tape singkong, ubi ungu, gabin"
+      ],
+      [
+        "Ukuran",
+        "Kecil"
+      ],
+      [
+        "Daya tahan",
+        "3 hari suhu ruang"
+      ],
+      [
+        "Minimal pesan",
+        "1 buah"
+      ]
+    ]
+  },
+  {
+    "slug": "gabin-tape-ubi-ungu-besar",
+    "nama": "Gabin Tape Ubi Ungu Besar",
+    "umkm": "gabin-tape-wizura",
+    "kategori": "kuliner",
+    "harga": "Rp2.000",
+    "satuan": "per buah",
+    "foto": "gabin-tapai.jpg",
+    "penilaian": 0,
+    "galeri": [],
+    "ulasan": [],
+    "unggulan": false,
+    "deskripsi": "Varian ubi ungu, ukuran besar, dijual satuan. Warnanya ungu alami dari ubi, rasanya lebih lembut dan tidak seasam varian original.",
+    "rincian": [
+      [
+        "Bahan utama",
+        "Tape singkong, ubi ungu, gabin"
+      ],
+      [
+        "Ukuran",
+        "Besar"
+      ],
+      [
+        "Daya tahan",
+        "3 hari suhu ruang"
+      ],
+      [
+        "Minimal pesan",
+        "1 buah"
+      ]
+    ]
+  },
+  {
+    "slug": "gabin-tape-cokelat-kecil",
+    "nama": "Gabin Tape Cokelat Kecil",
+    "umkm": "gabin-tape-wizura",
+    "kategori": "kuliner",
+    "harga": "Rp1.000",
+    "satuan": "per buah",
+    "foto": "gabin-tapai.jpg",
+    "penilaian": 0,
+    "galeri": [],
+    "ulasan": [],
+    "unggulan": false,
+    "deskripsi": "Lelehan cokelat di dalam tape, ukuran kecil, dijual satuan. Varian paling disukai anak-anak dan pembeli yang belum terbiasa dengan rasa tape.",
+    "rincian": [
+      [
+        "Bahan utama",
+        "Tape singkong, cokelat, gabin"
+      ],
+      [
+        "Ukuran",
+        "Kecil"
+      ],
+      [
+        "Daya tahan",
+        "3 hari suhu ruang"
+      ],
+      [
+        "Minimal pesan",
+        "1 buah"
+      ]
+    ]
+  },
+  {
+    "slug": "gabin-tape-cokelat-besar",
+    "nama": "Gabin Tape Cokelat Besar",
+    "umkm": "gabin-tape-wizura",
+    "kategori": "kuliner",
+    "harga": "Rp2.000",
+    "satuan": "per buah",
+    "foto": "gabin-tapai.jpg",
+    "penilaian": 0,
+    "galeri": [],
+    "ulasan": [],
+    "unggulan": false,
+    "deskripsi": "Lelehan cokelat di dalam tape, ukuran besar, dijual satuan. Varian paling disukai anak-anak dan pembeli yang belum terbiasa dengan rasa tape.",
+    "rincian": [
+      [
+        "Bahan utama",
+        "Tape singkong, cokelat, gabin"
+      ],
+      [
+        "Ukuran",
+        "Besar"
+      ],
+      [
+        "Daya tahan",
+        "3 hari suhu ruang"
+      ],
+      [
+        "Minimal pesan",
+        "1 buah"
       ]
     ]
   },
@@ -735,8 +927,8 @@ const PRODUK = [
         "Halal Indonesia, P-IRT 2013210010707-28"
       ],
       [
-        "Harga grosir",
-        "Rp12.500/pack untuk pembelian minimal 10 pak"
+        "Minimal pesan",
+        "1 pack"
       ]
     ]
   },
@@ -754,7 +946,7 @@ const PRODUK = [
     ],
     "ulasan": [],
     "unggulan": false,
-    "deskripsi": "Sudah digoreng renyah, dikemas dalam pack. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28.",
+    "deskripsi": "Sudah digoreng renyah, dikemas dalam pack. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28. Harga grosir Rp12.500/pack untuk pembelian minimal 10 pcs.",
     "rincian": [
       [
         "Bahan utama",
@@ -769,8 +961,8 @@ const PRODUK = [
         "Halal Indonesia, P-IRT 2013210010707-28"
       ],
       [
-        "Minimal pesan",
-        "1 pack"
+        "Harga grosir",
+        "Rp12.500/pack untuk pembelian minimal 10 pcs"
       ]
     ]
   },
@@ -781,11 +973,9 @@ const PRODUK = [
     "kategori": "kuliner",
     "harga": "Rp55.000",
     "satuan": "per 500 gram",
-    "foto": "kerupuk-kulit-1.jpg",
+    "foto": "kerupuk-kulit-500gram.jpeg",
     "penilaian": 0,
-    "galeri": [
-      "kerupuk-kulit-3.jpg"
-    ],
+    "galeri": [],
     "ulasan": [],
     "unggulan": false,
     "deskripsi": "Sudah digoreng renyah, dikemas dalam ukuran 500 gram. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28.",
@@ -815,11 +1005,9 @@ const PRODUK = [
     "kategori": "kuliner",
     "harga": "Rp170.000",
     "satuan": "per 1,5 kilogram",
-    "foto": "kerupuk-kulit-1.jpg",
+    "foto": "kerupuk-kulit-1-5kg.jpeg",
     "penilaian": 0,
-    "galeri": [
-      "kerupuk-kulit-3.jpg"
-    ],
+    "galeri": [],
     "ulasan": [],
     "unggulan": false,
     "deskripsi": "Sudah digoreng renyah, dikemas dalam ukuran 1,5 kilogram, cocok untuk stok lebih banyak. Merek 'RR Ratu', bersertifikat Halal dan terdaftar P-IRT 2013210010707-28.",
@@ -949,7 +1137,9 @@ const PRODUK = [
     "satuan": "per buah",
     "foto": "molen-bu-yeti.jpg",
     "penilaian": 0,
-    "galeri": [],
+    "galeri": [
+      "molen.jpg"
+    ],
     "ulasan": [],
     "unggulan": true,
     "deskripsi": "Molen pisang digoreng renyah, dijual lepas tanpa kemasan seperti gorengan pada umumnya. Digoreng dini hari, dititipkan ke warung untuk sarapan pagi.",
@@ -1029,7 +1219,7 @@ const PRODUK = [
     "nama": "Risol Sayur",
     "umkm": "jajanan-pasar-bu-yeti",
     "kategori": "kuliner",
-    "harga": "GANTI: kisaran harga",
+    "harga": "Rp1.000",
     "satuan": "per buah",
     "foto": "risol-bu-yeti.jpg",
     "penilaian": 0,
