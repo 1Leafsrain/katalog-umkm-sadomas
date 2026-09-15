@@ -160,9 +160,13 @@ function doPost(e) {
     }
 
     // ---- Mulai sini WAJIB kata sandi admin. ----
+    var batasAdmin = cekBatasPercobaan("admin");
+    if (batasAdmin.terkunci) return keluaran({ galat: batasAdmin.pesan });
     if (isi.sandi !== KATA_SANDI) {
+      catatPercobaanGagal("admin");
       return keluaran({ galat: "Kata sandi salah." });
     }
+    resetPercobaan("admin");
     // Dipakai admin.js sebagai "login".
     if (isi.aksi === "cekSandi") return keluaran({ ok: true });
     if (isi.aksi === "bacaStatistik") {
@@ -229,6 +233,54 @@ function bacaPeta(kunciProperti) {
 
 function tulisPeta(kunciProperti, peta) {
   propScript().setProperty(kunciProperti, JSON.stringify(peta));
+}
+
+/* ---------- Pembatas percobaan gagal (anti tebak-tebakan) ----------
+   Dipakai utk kode akses toko (pengenal "toko:<slug>") dan kata sandi
+   admin (pengenal "admin") -- keduanya cuma dicocokkan langsung tanpa
+   batas percobaan, jadi siapa pun bisa menebak berkali-kali lewat
+   doPost. Cuma percobaan GAGAL yang dihitung, jadi pemilik toko/admin
+   yang sah tidak pernah kena batas walau mengirim banyak aksi
+   beruntun dengan kode/sandi yang BENAR (hitungan direset tiap
+   berhasil). */
+var KUNCI_BATAS_GAGAL = "BATAS_GAGAL";
+var BATAS_PERCOBAAN = 8; // percobaan gagal maksimal sebelum terkunci
+var JENDELA_KUNCI_MENIT = 15; // lama terkunci setelah lewat batas
+
+function cekBatasPercobaan(pengenal) {
+  var peta = bacaPeta(KUNCI_BATAS_GAGAL);
+  var catatan = peta[pengenal];
+  if (!catatan) return { terkunci: false };
+  var kedaluwarsa = new Date(catatan.waktu).getTime() + JENDELA_KUNCI_MENIT * 60000;
+  if (catatan.jumlah >= BATAS_PERCOBAAN && Date.now() < kedaluwarsa) {
+    var sisaMenit = Math.ceil((kedaluwarsa - Date.now()) / 60000);
+    return { terkunci: true, pesan: "Terlalu banyak percobaan gagal. Coba lagi dalam " + sisaMenit + " menit." };
+  }
+  return { terkunci: false };
+}
+
+function catatPercobaanGagal(pengenal) {
+  denganKunci(function () {
+    var peta = bacaPeta(KUNCI_BATAS_GAGAL);
+    var catatan = peta[pengenal];
+    var kedaluwarsa = catatan ? new Date(catatan.waktu).getTime() + JENDELA_KUNCI_MENIT * 60000 : 0;
+    catatan =
+      catatan && Date.now() < kedaluwarsa
+        ? { jumlah: catatan.jumlah + 1, waktu: catatan.waktu }
+        : { jumlah: 1, waktu: new Date().toISOString() };
+    peta[pengenal] = catatan;
+    tulisPeta(KUNCI_BATAS_GAGAL, peta);
+  });
+}
+
+function resetPercobaan(pengenal) {
+  denganKunci(function () {
+    var peta = bacaPeta(KUNCI_BATAS_GAGAL);
+    if (peta[pengenal] != null) {
+      delete peta[pengenal];
+      tulisPeta(KUNCI_BATAS_GAGAL, peta);
+    }
+  });
 }
 
 /* ---------- Validasi slug UMKM/PRODUK lewat GitHub ---------- */
@@ -721,10 +773,15 @@ var KUNCI_AKSES_UMKM = "AKSES_UMKM";
 // peramban pemanggil, selalu dicocokkan lagi ke PropertiesService.
 function cekKodeUmkm(slug, kode) {
   if (!slug || !kode) return { galat: "Slug dan kode wajib diisi." };
+  var pengenal = "toko:" + slug;
+  var batas = cekBatasPercobaan(pengenal);
+  if (batas.terkunci) return { galat: batas.pesan };
   var peta = bacaPeta(KUNCI_AKSES_UMKM);
   if (String(peta[slug] || "") !== String(kode)) {
+    catatPercobaanGagal(pengenal);
     return { galat: "Slug atau kode akses salah." };
   }
+  resetPercobaan(pengenal);
   return { ok: true };
 }
 

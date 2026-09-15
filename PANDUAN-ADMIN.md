@@ -223,10 +223,15 @@ promo yang tampil di halaman profil tokonya, lewat `toko-saya.html` --
 TANPA perlu kata sandi admin ataupun token GitHub. Caranya:
 
 1. Di admin.html (kredensial Apps Script), pilih Jenis data **Kode akses
-   toko**, klik **+ Tambah Baru**.
-2. Isi **Slug UMKM** (harus sama persis dengan slug tokonya di GitHub)
-   dan **Kode akses** bebas pilihan sendiri (tidak harus rumit, cukup
-   mudah diingat pemilik tokonya).
+   toko**, klik **+ Tambah Baru** (toko baru) atau **Ubah** pada baris
+   toko yang sudah ada (mengganti kode toko itu -- misalnya kalau
+   pemilik lupa kodenya atau minta diganti).
+2. Isi **Slug UMKM** (harus sama persis dengan slug tokonya di GitHub).
+   Untuk **Kode akses**, tekan tombol **Buat Otomatis** supaya terisi
+   kode acak 8 karakter yang aman (dibuat di peramban, bukan ditebak-
+   tebak) -- atau ketik sendiri kalau memang mau kode yang mudah
+   diingat pemilik tokonya. Hindari pola yang gampang ditebak seperti
+   nama toko + angka pendek.
 3. Simpan, lalu kabari pemilik usahanya: alamat
    `https://<akun>.github.io/katalog-umkm-sadomas/toko-saya.html`, nama
    tokonya, dan kode aksesnya -- lewat WhatsApp atau langsung, bukan grup
@@ -236,7 +241,18 @@ Pemilik toko masuk dengan memilih nama tokonya + kode akses. Promo yang
 disimpan lewat halaman itu tampil di situs publik hampir seketika (ikut
 GitHub Pages terbit ulang, sama seperti data lain sekarang) -- Kode
 Akses-nya sendiri TIDAK pernah menyentuh GitHub sama sekali (tetap
-privat di Apps Script).
+privat di Apps Script, tersimpan apa adanya supaya admin bisa
+melihat/mengirim ulang kode yang sudah ada kalau pemilik tokonya lupa).
+
+**Kenapa halaman ini boleh dibuka siapa saja tanpa login halaman**:
+sama seperti `admin.html`, GitHub Pages tidak punya mekanisme login
+per-halaman -- gerbang yang sesungguhnya ada di pengecekan kode/sandi
+pada SETIAP panggilan ke Apps Script, bukan pada bisa/tidaknya halaman
+dibuka. Untuk mencegah tebak-tebakan kode/sandi otomatis, Apps Script
+mengunci sementara (15 menit) satu toko atau login admin setelah 8x
+percobaan gagal berturut-turut -- kalau muncul pesan "Terlalu banyak
+percobaan gagal", itu bukan tanda situsnya rusak, cukup tunggu atau
+pastikan kode/sandinya benar sebelum mencoba lagi.
 
 ## Mengunggah foto lewat form admin
 
@@ -390,6 +406,12 @@ bukan saling menimpa) -- tidak ada yang perlu dilakukan pengguna.
 - **Di `toko-saya.html`, "Slug atau kode akses salah"** -- cocokkan lagi
   kode aksesnya lewat menu Kode Akses Toko di admin.html; ingat
   besar/kecil huruf ikut diperhatikan.
+- **"Terlalu banyak percobaan gagal. Coba lagi dalam N menit."** --
+  bukan bug. Muncul di `toko-saya.html` atau `admin.html` setelah 8x
+  berturut-turut salah memasukkan kode/sandi (untuk satu toko atau satu
+  login admin) -- pembatas ini mencegah orang menebak-nebak kode/sandi
+  otomatis. Tunggu sampai waktunya habis, atau pastikan kode/sandinya
+  memang benar sebelum mencoba lagi.
 - **Di `toko-saya.html`/form ulasan produk, "Fitur ini belum aktif"** --
   `URL_STATISTIK` di `assets/toko-saya.js`/`assets/app.js` masih belum
   diisi alamat Web App yang benar.

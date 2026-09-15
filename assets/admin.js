@@ -184,7 +184,7 @@ const SKEMA_TAB = {
     ringkas: (r) => r.slug + " — kode: " + r.kode,
     field: [
       ["slug", "Slug UMKM (harus sama persis)", TEKS, true],
-      ["kode", "Kode akses (bebas, kabari pemilik toko lewat WA)", TEKS, true],
+      ["kode", "Kode akses (tekan Buat Otomatis untuk kode acak yang aman, atau ketik sendiri) -- kabari pemilik toko lewat WA", TEKS, true],
     ],
   },
 };
@@ -553,6 +553,16 @@ function perbaruiPetunjukSumber() {
       : "Tab ini lewat Apps Script -- butuh Alamat Web App & Kata Sandi Admin di bagian Pengaturan.";
 }
 
+// Alfabet tanpa 0/O/1/I/L (gampang ketuker saat ditulis/dibacakan lewat
+// WA) -- pakai crypto.getRandomValues (bukan Math.random) karena ini
+// nilai yang relevan keamanan (kode akses toko).
+function buatKodeAcak() {
+  const abjad = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const acak = new Uint8Array(8);
+  crypto.getRandomValues(acak);
+  return Array.from(acak, (b) => abjad[b % abjad.length]).join("");
+}
+
 function renderForm() {
   const skema = SKEMA_TAB[tabAktif];
   const wadah = $("#form-field");
@@ -579,6 +589,13 @@ function renderForm() {
       const berkas = elemen("input", { type: "file", accept: "image/*" });
       berkas.addEventListener("change", () => unggahFotoDariInput(berkas, inputTeks, pratinjau, status));
       baris.append(inputTeks, elemen("div", { kelas: "f-foto-alat" }, berkas, status), pratinjau);
+    } else if (tabAktif === "AKSES_UMKM" && kunci === "kode") {
+      const input = elemen("input", { id: idInput, name: kunci, type: "text" });
+      const tombolAcak = elemen("button", { type: "button", kelas: "sekunder" }, "Buat Otomatis");
+      tombolAcak.addEventListener("click", () => {
+        input.value = buatKodeAcak();
+      });
+      baris.append(elemen("div", { kelas: "f-foto-alat" }, input, tombolAcak));
     } else {
       baris.append(elemen("input", { id: idInput, name: kunci, type: "text" }));
     }
