@@ -16,14 +16,28 @@
    situs (lihat susunKepala() di app.js), tapi itu cuma kemudahan --
    siapa pun yang tahu alamatnya tetap bisa membukanya langsung (GitHub
    Pages tidak punya login halaman). Yang benar-benar menahan penulisan
-   data adalah pengecekan kata sandi di Apps Script (Code.gs), bukan
-   halaman ini ataupun tertaut-tidaknya dari menu.
+   data adalah login admin (Firebase Authentication) yang diverifikasi
+   ulang di Apps Script (Code.gs) tiap panggilan, bukan halaman ini
+   ataupun tertaut-tidaknya dari menu.
    ============================================================ */
 
 // Harus selalu sama dengan JUMLAH_GALERI/JUMLAH_RINCIAN di
 // scripts/skema.mjs -- kalau salah satu diubah, ubah juga yang lain.
 const JUMLAH_GALERI = 4;
 const JUMLAH_RINCIAN = 6;
+
+// GANTI dengan konfigurasi project Firebase Anda sendiri (Firebase
+// Console > Project settings > General > Your apps > SDK setup and
+// configuration). Nilai-nilai ini BUKAN rahasia -- Firebase memang
+// mendesainnya boleh terlihat di source kode publik mana pun, keamanan
+// sesungguhnya ada di aturan Firebase Authentication + ADMIN_EMAILS di
+// Code.gs, bukan di sini.
+const firebaseConfig = {
+  apiKey: "GANTI_FIREBASE_API_KEY",
+  authDomain: "GANTI_PROJECT_ID.firebaseapp.com",
+  projectId: "GANTI_PROJECT_ID",
+};
+firebase.initializeApp(firebaseConfig);
 
 const KUNCI_LOKAL = "admin-katalog-pengaturan";
 
@@ -207,22 +221,19 @@ function simpanPengaturan(p) {
   }
 }
 
-// Nilai yang BENAR-BENAR dipakai untuk memanggil Apps Script selalu
-// dibaca langsung dari kolom form yang sedang terlihat -- bukan dari
-// localStorage. localStorage cuma dipakai untuk MENGISI kolom ini saat
-// halaman dibuka (lihat renderPengaturan). Kalau tidak begini: waktu
-// "Ingat kata sandi" tidak dicentang, sandi yang baru saja diketik
-// tidak akan pernah tersimpan ke localStorage, dan kalau nilainya
-// dibaca dari sana lagi, sandi yang baru diketik itu seolah hilang.
+// Nilai yang BENAR-BENAR dipakai untuk memanggil Apps Script/GitHub
+// selalu dibaca langsung dari kolom form yang sedang terlihat -- bukan
+// dari localStorage. localStorage cuma dipakai untuk MENGISI kolom ini
+// saat halaman dibuka (lihat renderPengaturan). Token admin sendiri
+// TIDAK lewat sini -- diambil langsung dari sesi Firebase Auth yang
+// sedang aktif, lihat panggilPost().
 function nilaiPengaturanAktif() {
   const elUrl = $("#p-url");
-  const elSandi = $("#p-sandi");
   const elPemilik = $("#g-pemilik");
   const elRepo = $("#g-repo");
   const elToken = $("#g-token");
   return {
     url: elUrl ? elUrl.value.trim() : "",
-    sandi: elSandi ? elSandi.value : "",
     githubPemilik: elPemilik ? elPemilik.value.trim() : "",
     githubRepo: elRepo ? elRepo.value.trim() : "",
     githubToken: elToken ? elToken.value : "",
@@ -249,10 +260,15 @@ async function panggilAppsScript(payload) {
   return j;
 }
 
+// ID token Firebase (JWT umur pendek, ~1 jam) diambil SEGAR dari SDK
+// tiap panggilan -- SDK sendiri yang mengurus perpanjangannya kalau
+// sudah mau kedaluwarsa, jadi tidak pernah disimpan manual ke
+// localStorage seperti kata sandi dulu.
 async function panggilPost(payload) {
-  const { sandi } = nilaiPengaturanAktif();
-  if (!sandi) throw new Error("Kata sandi admin belum diisi di bagian Pengaturan.");
-  return panggilAppsScript({ ...payload, sandi });
+  const pengguna = firebase.auth().currentUser;
+  if (!pengguna) throw new Error("Belum masuk sebagai admin -- silakan masuk lagi.");
+  const tokenAdmin = await pengguna.getIdToken();
+  return panggilAppsScript({ ...payload, tokenAdmin });
 }
 
 /* ---------- Panggilan ke GitHub Contents API (UMKM/Produk/Wisata) ----------
@@ -526,8 +542,6 @@ function pesanStatus(teks, jenis) {
 function renderPengaturan() {
   const p = ambilPengaturan();
   $("#p-url").value = p.url || "";
-  $("#p-sandi").value = p.sandi || "";
-  $("#p-ingat").checked = Boolean(p.ingatSandi);
   $("#g-pemilik").value = p.githubPemilik || "";
   $("#g-repo").value = p.githubRepo || "";
   $("#g-token").value = p.githubToken || "";
@@ -764,24 +778,26 @@ function pasang() {
   $("#form-pengaturan").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const url = $("#p-url").value.trim();
+    const email = $("#p-email").value.trim();
     const sandi = $("#p-sandi").value;
     const githubPemilik = $("#g-pemilik").value.trim();
     const githubRepo = $("#g-repo").value.trim();
     const githubToken = $("#g-token").value;
-    const isiSheet = Boolean(url || sandi);
+    const isiAppsScript = Boolean(url || email || sandi);
     const isiGithub = Boolean(githubPemilik || githubRepo || githubToken);
 
-    if (!isiSheet && !isiGithub) {
+    if (!isiAppsScript && !isiGithub) {
       pesanStatus(
-        "Isi Alamat Web App + Kata Sandi Admin, dan/atau Pemilik GitHub + Repositori + Token.",
+        "Isi Alamat Web App + Email + Kata Sandi, dan/atau Pemilik GitHub + Repositori + Token.",
         "galat",
       );
       return;
     }
     pesanStatus("Memeriksa...", "");
     try {
-      if (isiSheet) {
-        if (!url || !sandi) throw new Error("Alamat Web App dan Kata Sandi Admin harus diisi berdua.");
+      if (isiAppsScript) {
+        if (!url || !email || !sandi) throw new Error("Alamat Web App, Email, dan Kata Sandi harus diisi bertiga.");
+        await firebase.auth().signInWithEmailAndPassword(email, sandi);
         await panggilPost({ aksi: "cekSandi" });
       }
       if (isiGithub) {
@@ -792,13 +808,12 @@ function pasang() {
       }
       simpanPengaturan({
         url,
-        sandi: $("#p-ingat").checked ? sandi : "",
-        ingatSandi: $("#p-ingat").checked,
         githubPemilik,
         githubRepo,
         githubToken: $("#g-ingat").checked ? githubToken : "",
         ingatToken: $("#g-ingat").checked,
       });
+      $("#p-sandi").value = "";
       bukaKunci();
       muatDaftar();
       muatStatistik();
@@ -808,18 +823,16 @@ function pasang() {
     }
   });
 
-  $("#btn-keluar").addEventListener("click", () => {
+  $("#btn-keluar").addEventListener("click", async () => {
+    await firebase.auth().signOut();
     simpanPengaturan({
       url: $("#p-url").value.trim(),
-      sandi: "",
-      ingatSandi: false,
       githubPemilik: $("#g-pemilik").value.trim(),
       githubRepo: $("#g-repo").value.trim(),
       githubToken: "",
       ingatToken: false,
     });
     $("#p-sandi").value = "";
-    $("#p-ingat").checked = false;
     $("#g-token").value = "";
     $("#g-ingat").checked = false;
     $("#daftar").innerHTML = "";
@@ -828,29 +841,37 @@ function pasang() {
     pesanStatus("Sudah keluar.", "");
   });
 
-  // Kalau kredensial sebelumnya diminta diingat, coba langsung masuk
-  // tanpa perlu klik apa pun -- tetap lewat cekSandi/cekGithub ke
-  // server, bukan sekadar percaya begitu saja pada apa yang tersimpan
-  // di peramban. Kedua kredensial independen: satu boleh belum pernah
-  // diisi sementara yang lain sudah dipakai.
+  // Firebase mengurus sesi login admin sendiri (disimpan aman lewat SDK-
+  // nya, bukan localStorage kita) -- onAuthStateChanged akan otomatis
+  // terpanggil begitu peramban dibuka kalau sebelumnya pernah masuk dan
+  // belum menekan Keluar. Tetap dicek ulang ke server (cekSandi), tidak
+  // percaya begitu saja ke status login Firebase di peramban. GitHub
+  // tetap independen seperti sebelumnya (localStorage kita sendiri).
   const tersimpan = ambilPengaturan();
-  const cobaSheet = Boolean(tersimpan.url && tersimpan.sandi);
   const cobaGithub = Boolean(tersimpan.githubPemilik && tersimpan.githubRepo && tersimpan.githubToken);
-  if (cobaSheet || cobaGithub) {
+  let sudahCobaOtomatis = false;
+  firebase.auth().onAuthStateChanged((pengguna) => {
+    if (pengguna) $("#p-email").value = pengguna.email || "";
+    if (sudahCobaOtomatis) return;
+    sudahCobaOtomatis = true;
+
+    const cobaAppsScript = Boolean(pengguna && tersimpan.url);
+    if (!cobaAppsScript && !cobaGithub) return;
+    if (tersimpan.url) $("#p-url").value = tersimpan.url;
     pesanStatus("Memeriksa sesi tersimpan...", "");
     Promise.all([
-      cobaSheet ? panggilPost({ aksi: "cekSandi" }).then(() => "").catch((e) => "Sheet: " + e.message) : "",
+      cobaAppsScript ? panggilPost({ aksi: "cekSandi" }).then(() => "").catch((e) => "Apps Script: " + e.message) : "",
       cobaGithub ? cekGithub().then(() => "").catch((e) => "GitHub: " + e.message) : "",
-    ]).then(([galatSheet, galatGithub]) => {
-      if ((cobaSheet && !galatSheet) || (cobaGithub && !galatGithub)) {
+    ]).then(([galatAppsScript, galatGithub]) => {
+      if ((cobaAppsScript && !galatAppsScript) || (cobaGithub && !galatGithub)) {
         bukaKunci();
         muatDaftar();
         muatStatistik();
       }
-      const galat = [galatSheet, galatGithub].filter(Boolean);
+      const galat = [galatAppsScript, galatGithub].filter(Boolean);
       pesanStatus(galat.length ? "Sesi tersimpan tidak semuanya berlaku lagi -- " + galat.join("; ") : "", galat.length ? "galat" : "");
     });
-  }
+  });
 
   $("#pilih-tab").addEventListener("change", (ev) => {
     tabAktif = ev.target.value;

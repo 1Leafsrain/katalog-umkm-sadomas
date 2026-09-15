@@ -9,8 +9,8 @@ penyimpanan privat milik Apps Script sendiri, tergantung jenisnya:
 | Jenis data | Tersimpan di | Ditulis oleh | Kredensial |
 | --- | --- | --- | --- |
 | UMKM, Produk, Wisata (+ foto) | GitHub (`data/db/*.json` + `assets/img/`) | Peramban admin langsung | Token GitHub pribadi admin |
-| Ulasan Pembeli, Promo per-UMKM | GitHub (`data/db/ulasan.json`/`promo.json`) | **Apps Script** (relay, token di server) | Kata sandi admin (`KATA_SANDI`) |
-| Kode Akses Toko, Statistik | Privat di Apps Script sendiri (`PropertiesService`) | Apps Script langsung | Kata sandi admin (`KATA_SANDI`) |
+| Ulasan Pembeli, Promo per-UMKM | GitHub (`data/db/ulasan.json`/`promo.json`) | **Apps Script** (relay, token di server) | Login admin (Firebase Authentication) |
+| Kode Akses Toko, Statistik | Privat di Apps Script sendiri (`PropertiesService`) | Apps Script langsung | Login admin (Firebase Authentication) |
 
 **Kenapa dipecah begini?** UMKM/Produk/Wisata cuma pernah ditulis admin
 (yang memang sudah pegang rahasia asli), jadi token GitHub saja cukup
@@ -39,7 +39,7 @@ UMKM / Produk / Wisata (+ foto)      Ulasan / Promo             Kode Akses / Sta
       v                                    v                          v
 GitHub Contents API              Apps Script Web App          Apps Script Web App
 (token pribadi admin)             (Standalone Script)          (Standalone Script)
-      |  commit langsung ke              |  cek kata sandi            |  cek kata sandi
+      |  commit langsung ke              |  cek login admin           |  cek login admin
       |  data/db/*.json/                 |  token GitHub SERVER       |  simpan ke
       |  assets/img/                     v                            |  PropertiesService
       v                          data/db/ulasan.json/                 v
@@ -99,7 +99,34 @@ dan Token GitHub dari langkah A1.
 
 **Google Sheet TIDAK diperlukan untuk bagian ini.** Apps Script dibuat
 sebagai proyek berdiri sendiri (Standalone Script), bukan ditempel ke
-spreadsheet mana pun.
+spreadsheet mana pun. Login admin sendiri lewat **Firebase
+Authentication** (gratis, paket Spark, tidak perlu kartu kredit untuk
+bagian ini) -- bukan lagi kata sandi tertulis di source code.
+
+### B0. Siapkan Firebase Authentication (login admin)
+
+1. Buka `https://console.firebase.google.com`, masuk dengan akun
+   Google yang sama, klik **Add project** (boleh matikan Google
+   Analytics, tidak diperlukan di sini). Ini gratis.
+2. Di sidebar kiri, buka **Build > Authentication**, klik **Get
+   started**.
+3. Di tab **Sign-in method**, aktifkan provider **Email/Password**.
+4. **Penting**: JANGAN aktifkan cara apa pun yang membiarkan orang
+   mendaftar sendiri di situs -- akun admin cuma dibuat lewat langkah
+   5 di bawah (lewat Firebase Console), bukan lewat form di situs
+   publik.
+5. Buka tab **Users**, klik **Add user**. Isi email dan kata sandi
+   untuk admin (boleh bikin lebih dari satu akun kalau pengurusnya
+   lebih dari satu orang). Kata sandi inilah yang nanti dipakai masuk
+   ke `admin.html`.
+6. Klik ikon gerigi (Project settings) di sidebar kiri atas, gulir ke
+   **Your apps**, klik ikon `</>` ("Web") untuk mendaftarkan situs ini
+   (beri nama bebas, TIDAK perlu centang "Also set up Firebase
+   Hosting" -- situs ini tetap di GitHub Pages).
+7. Akan muncul potongan kode berisi `firebaseConfig = { apiKey: "...",
+   authDomain: "...", projectId: "...", ... }`. **Catat tiga nilai
+   ini** (`apiKey`, `authDomain`, `projectId`), dipakai di langkah
+   berikutnya.
 
 ### B1. Buat Standalone Script
 
@@ -112,16 +139,25 @@ spreadsheet mana pun.
    tempel ke editor Apps Script tadi.
 5. (Opsional tapi disarankan) klik nama proyek di kiri atas ("Untitled
    project"), ganti jadi nama yang jelas, misalnya "Katalog UMKM Sadomas".
-6. Cari baris `var KATA_SANDI = "GANTI_KATA_SANDI_ADMIN";` di dekat atas.
-   **Ganti** `GANTI_KATA_SANDI_ADMIN` dengan PIN pilihan sendiri (bebas,
-   tidak harus rumit -- ini cuma penyaring supaya bukan sembarang orang yang
-   tahu alamat Web App-nya bisa menulis/memoderasi data, bukan kata sandi
-   akun Google).
-7. Cari baris `var GITHUB_PEMILIK = "GANTI_PEMILIK_GITHUB";` dan
+6. Cari baris `var ADMIN_EMAILS = "GANTI_EMAIL_ADMIN@contoh.com";` di
+   dekat atas. **Ganti** dengan email admin dari langkah B0.5 (lebih
+   dari satu email, pisahkan dengan koma, contoh:
+   `"admin1@gmail.com,admin2@gmail.com"`). Cuma email di daftar ini
+   yang bisa jadi admin, walau orang lain berhasil bikin akun Firebase
+   lain entah bagaimana.
+7. Cari baris `var FIREBASE_API_KEY = "GANTI_FIREBASE_API_KEY";` di
+   bawahnya. **Ganti** dengan `apiKey` dari langkah B0.7 (nilai ini
+   BUKAN rahasia, aman terlihat di source kode mana pun).
+8. Cari baris `var GITHUB_PEMILIK = "GANTI_PEMILIK_GITHUB";` dan
    `var GITHUB_REPO = "GANTI_NAMA_REPO";` sedikit di bawahnya. **Ganti**
    keduanya dengan nilai yang SAMA dipakai di Bagian A3 (Pemilik GitHub
    dan Repositori).
-8. Simpan (ikon disket, atau Ctrl/Cmd+S).
+9. Simpan (ikon disket, atau Ctrl/Cmd+S).
+10. Di repositori ini, buka `assets/admin.js`, cari
+    `const firebaseConfig = { apiKey: "GANTI_FIREBASE_API_KEY",
+    authDomain: "GANTI_PROJECT_ID.firebaseapp.com", projectId:
+    "GANTI_PROJECT_ID" };` dekat atas. **Ganti** ketiganya dengan nilai
+    dari langkah B0.7, lalu simpan (commit) perubahan ini.
 
 ### B2. Isi token GitHub milik SERVER (Script Properties)
 
@@ -176,11 +212,14 @@ access" memang **Anyone**.
    tiap halaman). Yang tampil pertama kali adalah layar **Masuk**.
 2. Isi salah satu atau kedua kredensial, sesuai data yang mau diubah:
    Pemilik GitHub + Repositori + Token (Bagian A), dan/atau Alamat Web
-   App + Kata Sandi Admin (Bagian B). Boleh isi satu dulu, lengkapi yang
-   lain kapan pun -- tidak wajib keduanya sekaligus.
+   App + Email + Kata Sandi (akun Firebase dari Bagian B0.5). Boleh isi
+   satu dulu, lengkapi yang lain kapan pun -- tidak wajib keduanya
+   sekaligus.
 3. Klik **Masuk**. Kredensial yang diisi akan diperiksa (token ke
-   GitHub, kata sandi ke Apps Script); yang tidak diisi dilewati begitu
-   saja.
+   GitHub, login ke Firebase lalu diverifikasi ulang ke Apps Script);
+   yang tidak diisi dilewati begitu saja. Sesi login Firebase diingat
+   otomatis oleh peramban sampai Anda menekan **Keluar** -- tidak ada
+   kotak centang "ingat sandi" lagi untuk bagian ini.
 4. Pilih **Jenis data** pada menu -- di bawahnya ada keterangan singkat
    tab itu disimpan di GitHub atau lewat Apps Script, supaya jelas
    kredensial mana yang dipakai.
@@ -297,11 +336,14 @@ berwenang.
   Karena dibatasi fine-grained ke satu repositori + izin Contents saja,
   token yang bocor tidak bisa dipakai membuka repositori lain atau
   mengubah pengaturan repo ini (Settings, Actions, dst.).
-- **Kata sandi admin** (Ulasan/Promo/Kode Akses/Statistik, Bagian B) --
-  diperiksa oleh `Code.gs` di server Google, lewat aksi `cekSandi`
-  sebelum menampilkan bagian itu. Kalau sudah diganti (lihat "kalau
-  bocor" di bawah), sesi lama yang kebetulan masih tersimpan di
-  peramban otomatis ditolak lagi.
+- **Login admin** (Ulasan/Promo/Kode Akses/Statistik, Bagian B) --
+  email+sandi diperiksa oleh Firebase Authentication (bukan `Code.gs`),
+  lalu token hasil login itu diverifikasi ULANG oleh `Code.gs` ke
+  Google (endpoint Identity Toolkit) plus dicocokkan ke `ADMIN_EMAILS`
+  sebelum menampilkan bagian itu -- dua lapis, bukan cuma percaya token
+  dari peramban begitu saja. Kalau email dihapus dari `ADMIN_EMAILS`
+  atau akunnya dihapus di Firebase Console, sesi lama yang kebetulan
+  masih tersimpan di peramban otomatis ditolak lagi.
 
 Ada JUGA token GitHub KETIGA (Bagian B2) yang dipegang Apps Script
 sendiri, bukan admin.js -- token itu TIDAK PERNAH terlihat siapa pun
@@ -339,8 +381,8 @@ BUKAN oleh pengunjung langsung ke GitHub.
 
 Karena itu:
 
-- **Jangan sebarkan alamat `admin.html`, Token GitHub, maupun kata
-  sandi Apps Script** ke luar pengurus yang berwenang.
+- **Jangan sebarkan alamat `admin.html`, Token GitHub, maupun email +
+  kata sandi login admin** ke luar pengurus yang berwenang.
 - Kalau Token GitHub (Bagian A, milik admin) bocor atau dicurigai: buka
   `https://github.com/settings/tokens?type=beta`, cari tokennya, klik
   **Delete**, lalu buat token baru (Bagian A1) dan bagikan ulang ke
@@ -349,15 +391,22 @@ Karena itu:
   sama seperti di atas (Delete + buat baru), lalu perbarui nilainya di
   **Project Settings > Script Properties** Apps Script (tidak perlu
   deploy ulang -- Script Properties dibaca langsung tiap panggilan).
-- Kalau kata sandi Apps Script bocor atau dicurigai, ganti secepatnya:
-  1. Buka Apps Script, ubah nilai `KATA_SANDI` di `Code.gs`, simpan.
-  2. **Deploy > Manage deployments** -> klik ikon pensil pada deployment
-     yang aktif -> Version: **New version** -> **Deploy**.
-     (Ini memperbarui Web App yang sudah jalan supaya memakai kata sandi
-     baru, **tanpa** mengubah alamat URL-nya -- jadi kata sandi lama
-     langsung tidak berlaku lagi.)
-  3. Beri tahu kredensial baru ke pengurus yang berhak lewat jalur yang
-     aman (bukan grup WhatsApp umum).
+- Kalau kata sandi login admin bocor atau dicurigai, ganti secepatnya
+  lewat Firebase Console (bukan lewat `Code.gs` lagi):
+  1. Buka `https://console.firebase.google.com`, project situs ini ->
+     **Authentication > Users**.
+  2. Klik titik tiga pada akun admin yang bersangkutan -> **Reset
+     password** (kirim tautan reset ke emailnya) atau hapus akunnya lalu
+     buat yang baru (Bagian B0.5) kalau memang mau ganti total.
+  3. Sesi lama di peramban mana pun otomatis tertolak begitu token-nya
+     kedaluwarsa (paling lama ~1 jam) atau begitu dicoba dipakai lagi
+     dan Firebase sudah tidak mengenalinya.
+  4. Kalau yang bocor itu justru akses ke situs (bukan sandinya, akun
+     itu sendiri tidak semestinya jadi admin lagi): hapus emailnya dari
+     `ADMIN_EMAILS` di `Code.gs`, simpan, **Deploy > Manage deployments**
+     -> ikon pensil pada deployment aktif -> Version **New version** ->
+     **Deploy** (memperbarui Web App yang sudah jalan tanpa mengubah
+     alamat URL-nya).
 
 ## Kalau ada dua orang mengubah bersamaan
 
@@ -392,8 +441,20 @@ bukan saling menimpa) -- tidak ada yang perlu dilakukan pengguna.
   sudah kedaluwarsa, sudah dicabut (revoked), atau Pemilik/Repositori
   yang diisi tidak cocok dengan repo yang diizinkan token itu. Buat
   token baru (Bagian A1) kalau perlu.
-- **"Kata sandi salah"** (bagian Apps Script) -- cocokkan lagi dengan
-  `KATA_SANDI` di `Code.gs`, ingat huruf besar/kecil ikut diperhatikan.
+- **"Email atau kata sandi salah"** (bagian Apps Script) -- itu pesan
+  dari Firebase, bukan dari `Code.gs` -- cocokkan lagi email/sandinya,
+  atau reset lewat Firebase Console (Authentication > Users) kalau
+  lupa.
+- **"Akun ini bukan admin yang terdaftar"** -- login Firebase-nya
+  berhasil (email/sandi benar), tapi email itu belum ada di
+  `ADMIN_EMAILS` di `Code.gs`. Tambahkan emailnya (pisah koma kalau
+  lebih dari satu), simpan, lalu deploy ulang (lihat "kalau bocor" di
+  atas).
+- **"Sesi login tidak valid atau sudah kedaluwarsa"** -- token Firebase
+  cuma berlaku ~1 jam; biasanya cukup masuk ulang. Kalau terus muncul
+  padahal baru saja masuk, cek `FIREBASE_API_KEY`/`ADMIN_EMAILS` di
+  `Code.gs` sudah diisi (bukan `GANTI_...` lagi) dan `firebaseConfig`
+  di `assets/admin.js` sudah cocok dengan project Firebase yang benar.
 - **"Sesi tersimpan tidak semuanya berlaku lagi -- ..."** -- muncul
   otomatis saat membuka halaman kalau salah satu (atau kedua) kredensial
   yang diingat di peramban sudah tidak cocok lagi. Pesan menyebutkan sisi

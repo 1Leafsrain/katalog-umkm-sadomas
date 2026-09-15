@@ -224,13 +224,18 @@
           />
         </div>
         <div class="f-baris">
-          <label for="p-sandi">Kata sandi admin</label>
-          <input id="p-sandi" type="password" autocomplete="off" />
+          <label for="p-email">Email admin</label>
+          <input id="p-email" type="email" autocomplete="username" placeholder="admin@contoh.com" />
         </div>
-        <div class="baris-inline">
-          <input id="p-ingat" type="checkbox" />
-          <label for="p-ingat">Ingat kata sandi di peramban ini</label>
+        <div class="f-baris">
+          <label for="p-sandi">Kata sandi</label>
+          <input id="p-sandi" type="password" autocomplete="current-password" />
         </div>
+        <p class="catatan">
+          Login dikelola Firebase Authentication -- sesinya diingat otomatis
+          oleh peramban sampai Anda menekan Keluar, tidak perlu dicentang
+          manual.
+        </p>
 
         <div class="form-baris-tombol">
           <button type="submit" id="btn-masuk">Masuk</button>
@@ -290,6 +295,11 @@
 
     <script src="assets/grafik.js"></script>
     <script src="assets/foto-util.js"></script>
+    <!-- Firebase Authentication (login admin) -- versi "compat" sengaja
+         dipakai (bukan SDK modular/ESM) karena admin.js dimuat sebagai
+         skrip biasa, lihat catatan di kepala admin.js. -->
+    <script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth-compat.js"></script>
     <script src="assets/admin.js"></script>
   </body>
 </html>

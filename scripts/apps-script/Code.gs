@@ -44,23 +44,35 @@
    - Baca ulasan (bacaUlasan) tidak perlu kata sandi -- datanya sama
      dengan yang sudah publik di halaman katalog.
    - Aksi moderasi admin (hapus ulasan, kelola promo lintas toko, kelola
-     kode akses, lihat statistik) WAJIB kata sandi yang cocok dengan
-     KATA_SANDI di bawah. Sandi ini TERPISAH dari token GitHub yang
-     dipakai admin.js untuk UMKM/PRODUK/WISATA.
+     kode akses, lihat statistik) WAJIB login admin yang sah -- lewat
+     Firebase Authentication (lihat ADMIN_EMAILS/FIREBASE_API_KEY di
+     bawah), bukan kata sandi tertulis di source code lagi. Login ini
+     TERPISAH dari token GitHub yang dipakai admin.js untuk
+     UMKM/PRODUK/WISATA.
    - Aksi PUBLIK/ANONIM (catatStatistik, kirimUlasan) tidak perlu sandi
      APA PUN -- sengaja, karena dipanggil situs publik untuk SEMUA
      pengunjung. Validasinya diperketat di sisi server.
    - Aksi PUBLIK tapi KHUSUS PEMILIK TOKO (cekAksesUmkm,
      bacaStatistikUmkm, bacaPromoUmkm, simpanPromoUmkm) tidak pakai
-     KATA_SANDI admin -- tapi selalu mencocokkan ulang slug+kode ke
+     login admin -- tapi selalu mencocokkan ulang slug+kode ke
      penyimpanan kode akses, tidak pernah percaya begitu saja state di
      peramban pemanggil.
    ============================================================ */
 
-// GANTI ini sebelum men-deploy. Ini bukan kata sandi akun Google --
-// hanya PIN sederhana yang dicek sebelum data ditulis/dimoderasi.
-// Jangan pakai kata sandi yang dipakai ulang di tempat lain.
-var KATA_SANDI = "GANTI_KATA_SANDI_ADMIN";
+// GANTI ini sebelum men-deploy: daftar email yang boleh masuk sebagai
+// admin, dipisah koma (spasi di sekitar koma diabaikan). Akun-akun ini
+// dibuat lewat Firebase Console (Authentication > Users) -- pendaftaran
+// sendiri (self sign-up) HARUS dimatikan di sana, supaya cuma email di
+// daftar ini yang bisa jadi admin walau seseorang berhasil bikin akun
+// Firebase lain.
+var ADMIN_EMAILS = "GANTI_EMAIL_ADMIN@contoh.com";
+
+// Firebase Web API key -- BUKAN rahasia (didesain publik oleh Firebase
+// sendiri, sama seperti terlihat di source kode web mana pun yang
+// pakai Firebase). Keamanan sesungguhnya ada di Firebase Authentication
+// + ADMIN_EMAILS di atas, bukan di key ini. Diambil dari Firebase
+// Console > Project settings > General > Web API Key.
+var FIREBASE_API_KEY = "GANTI_FIREBASE_API_KEY";
 
 // Zona waktu dipakai untuk mengelompokkan statistik per hari dan untuk
 // tanggal otomatis di ulasan pembeli.
@@ -159,12 +171,13 @@ function doPost(e) {
       return keluaran(unggahFotoSaya(isi.namaAsli, isi.tipeMime, isi.dataBase64));
     }
 
-    // ---- Mulai sini WAJIB kata sandi admin. ----
+    // ---- Mulai sini WAJIB login admin (Firebase Authentication). ----
     var batasAdmin = cekBatasPercobaan("admin");
     if (batasAdmin.terkunci) return keluaran({ galat: batasAdmin.pesan });
-    if (isi.sandi !== KATA_SANDI) {
+    var cekAdmin = verifikasiTokenAdmin(isi.tokenAdmin);
+    if (cekAdmin.galat) {
       catatPercobaanGagal("admin");
-      return keluaran({ galat: "Kata sandi salah." });
+      return keluaran(cekAdmin);
     }
     resetPercobaan("admin");
     // Dipakai admin.js sebagai "login".
@@ -281,6 +294,45 @@ function resetPercobaan(pengenal) {
       tulisPeta(KUNCI_BATAS_GAGAL, peta);
     }
   });
+}
+
+/* ---------- Login admin lewat Firebase Authentication ----------
+   Code.gs TIDAK memverifikasi tanda tangan JWT sendiri (Apps Script
+   tidak punya pustaka RSA/JWT bawaan) -- sebagai gantinya minta Google
+   sendiri yang memvalidasi lewat endpoint Identity Toolkit publik.
+   Ini panggilan UrlFetchApp biasa (sama seperti slugGithubAda ke
+   GitHub), TIDAK ada hubungannya dengan batasan Cloud Functions/Blaze
+   milik Firebase -- Apps Script memang selalu bisa memanggil URL apa
+   pun secara gratis. */
+function verifikasiTokenAdmin(idToken) {
+  if (!idToken) return { galat: "Belum login." };
+  var res = UrlFetchApp.fetch(
+    "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo?key=" + FIREBASE_API_KEY,
+    {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify({ idToken: idToken }),
+      muteHttpExceptions: true,
+    },
+  );
+  if (res.getResponseCode() !== 200) {
+    return { galat: "Sesi login tidak valid atau sudah kedaluwarsa, silakan masuk ulang." };
+  }
+  var data = JSON.parse(res.getContentText());
+  var pengguna = data.users && data.users[0];
+  var email = pengguna && pengguna.email;
+  if (!email) {
+    return { galat: "Sesi login tidak valid atau sudah kedaluwarsa, silakan masuk ulang." };
+  }
+  var daftarEmail = String(ADMIN_EMAILS)
+    .split(",")
+    .map(function (s) {
+      return s.trim().toLowerCase();
+    });
+  if (daftarEmail.indexOf(String(email).toLowerCase()) === -1) {
+    return { galat: "Akun ini bukan admin yang terdaftar." };
+  }
+  return { ok: true, email: email };
 }
 
 /* ---------- Validasi slug UMKM/PRODUK lewat GitHub ---------- */
