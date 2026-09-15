@@ -33,9 +33,9 @@ const JUMLAH_RINCIAN = 6;
 // sesungguhnya ada di aturan Firebase Authentication + ADMIN_EMAILS di
 // Code.gs, bukan di sini.
 const firebaseConfig = {
-  apiKey: "GANTI_FIREBASE_API_KEY",
-  authDomain: "GANTI_PROJECT_ID.firebaseapp.com",
-  projectId: "GANTI_PROJECT_ID",
+  apiKey: "AIzaSyDlShqrct9whrtE-THC5CXJhaIos4EVByQ",
+  authDomain: "umkm-sadomas.firebaseapp.com",
+  projectId: "umkm-sadomas",
 };
 firebase.initializeApp(firebaseConfig);
 

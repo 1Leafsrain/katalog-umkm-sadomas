@@ -65,14 +65,14 @@
 // sendiri (self sign-up) HARUS dimatikan di sana, supaya cuma email di
 // daftar ini yang bisa jadi admin walau seseorang berhasil bikin akun
 // Firebase lain.
-var ADMIN_EMAILS = "GANTI_EMAIL_ADMIN@contoh.com";
+var ADMIN_EMAILS = "umkmsadomas@gmail.com";
 
 // Firebase Web API key -- BUKAN rahasia (didesain publik oleh Firebase
 // sendiri, sama seperti terlihat di source kode web mana pun yang
 // pakai Firebase). Keamanan sesungguhnya ada di Firebase Authentication
 // + ADMIN_EMAILS di atas, bukan di key ini. Diambil dari Firebase
 // Console > Project settings > General > Web API Key.
-var FIREBASE_API_KEY = "GANTI_FIREBASE_API_KEY";
+var FIREBASE_API_KEY = "AIzaSyDlShqrct9whrtE-THC5CXJhaIos4EVByQ";
 
 // Zona waktu dipakai untuk mengelompokkan statistik per hari dan untuk
 // tanggal otomatis di ulasan pembeli.
@@ -83,8 +83,8 @@ var ZONA_WAKTU = "Asia/Jakarta";
 // server ini, PAKAI token -- lihat githubTokenServer()). GANTI dua
 // nilai ini sesuai repo yang sebenarnya (sama dengan yang dipakai di
 // alamat GitHub Pages situs ini dan di admin.html).
-var GITHUB_PEMILIK = "GANTI_PEMILIK_GITHUB";
-var GITHUB_REPO = "GANTI_NAMA_REPO";
+var GITHUB_PEMILIK = "1Leafsrain";
+var GITHUB_REPO = "katalog-umkm-sadomas";
 
 // Statistik disimpan sebagai rekap harian selama sekian hari terakhir
 // -- lihat catatan di bersihkanStatLama().

@@ -240,7 +240,7 @@ const PRODUK_TERBIT = PRODUK.filter((p) => !perluDiisi(p.harga));
 // Selama masih "GANTI...", catatStatistik() tidak melakukan apa-apa.
 // Ada konstanta KEMBARAN di assets/toko-saya.js -- kalau salah satu
 // diubah, ubah juga yang lain, dua-duanya harus sama.
-const URL_STATISTIK = "GANTI_URL_APPS_SCRIPT";
+const URL_STATISTIK = "https://script.google.com/macros/s/AKfycbw5ndsgrKzy_RiZrgDtMHKLanauzMdCdFWzNzsC_L3Vay4Csk7_lfqAdBenk3w4wX3Z/exec";
 
 // Dipanggil dari halaman toko (kunjungan) dan tombol WhatsApp
 // (klik_wa). SENGAJA gagal-diam (.catch tanpa aksi) -- pencatatan

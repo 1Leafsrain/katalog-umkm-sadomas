@@ -10,7 +10,7 @@
 // GANTI dengan alamat Web App yang SAMA dengan yang ditulis di
 // assets/app.js (URL_STATISTIK) -- kalau salah satu diubah, ubah juga
 // yang lain, dua-duanya harus menunjuk Apps Script Web App yang sama.
-const URL_STATISTIK = "GANTI_URL_APPS_SCRIPT";
+const URL_STATISTIK = "https://script.google.com/macros/s/AKfycbw5ndsgrKzy_RiZrgDtMHKLanauzMdCdFWzNzsC_L3Vay4Csk7_lfqAdBenk3w4wX3Z/exec";
 
 const $ = (sel) => document.querySelector(sel);
 
