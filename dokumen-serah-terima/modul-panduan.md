@@ -185,6 +185,10 @@ Selain halaman admin milik desa, setiap pemilik UMKM punya halaman kecil milikny
 
 Setiap UMKM memperoleh kode yang berbeda. Kode dibuat pengurus desa lewat menu **Kode Akses Toko** di halaman admin, lalu dikirimkan kepada pemilik usaha melalui WhatsApp. Kode ini bukan kata sandi admin, dan tidak memberi akses ke data UMKM lain.
 
+Untuk membuatnya: pilih nama UMKM dari daftar dropdown (tidak perlu mengetik slug manual), lalu tekan **Buat Otomatis** supaya kode acak 8 karakter yang aman terisi sendiri -- atau ketik sendiri kalau memang mau kode yang mudah diingat pemiliknya.
+
+<figure class="gambar-panduan sempit"><img src="gambar/07-kode-akses.png" alt="Form tambah Kode Akses Toko, menunjukkan dropdown pilihan UMKM dan tombol Buat Otomatis"><figcaption class="keterangan-gambar">Menambah Kode Akses Toko: pilih UMKM dari dropdown, lalu tekan Buat Otomatis.</figcaption></figure>
+
 ## Melihat statistik dan memasang promo
 
 1. Buka halaman `toko-saya.html`, pilih nama usaha, masukkan kode akses, lalu tekan **Masuk**.
