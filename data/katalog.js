@@ -214,24 +214,6 @@ const UMKM = [
       "teks": "",
       "aktif": false
     }
-  },
-  {
-    "slug": "TES",
-    "nama": "tes",
-    "kategori": "tes",
-    "pemilik": "tes",
-    "wa": "08978462751",
-    "alamat": "tes",
-    "foto": "1789514653787-2951db3b-357a-4e60-8e58-c287ed4554ca.jpg",
-    "penilaian": 0,
-    "jamBuka": "08.30",
-    "pengiriman": "ambil di tempat",
-    "fotoLokasi": "",
-    "deskripsi": "tes",
-    "promo": {
-      "teks": "",
-      "aktif": false
-    }
   }
 ];
 
