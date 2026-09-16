@@ -51,8 +51,8 @@ Pada hari ini <span class="isian">&nbsp;</span> tanggal <span class="isian">&nbs
 
 Dengan ini **PIHAK PERTAMA** menyerahkan kepada **PIHAK KEDUA**, dan **PIHAK KEDUA** menyatakan telah menerima dengan baik dan lengkap, hal-hal sebagai berikut:
 
-1. Website Katalog UMKM Desa Sadomas beserta seluruh kode sumber (source code), yang beralamat di `1leafsrain.github.io/katalog-umkm-sadomas`;
-2. Hak akses pengelolaan, meliputi akun GitHub (hosting dan kode sumber) serta akun Google Sheet dan Google Apps Script (basis data dan layanan latar);
+1. Website Katalog UMKM Desa Sadomas beserta seluruh kode sumber (source code) dan data katalognya, beralamat di `umkmdesasadomas.web.id` (alamat cadangan: `1leafsrain.github.io/katalog-umkm-sadomas`);
+2. Hak akses pengelolaan, meliputi akun GitHub (kode sumber, data katalog, dan hosting), akun Google Apps Script (layanan latar Ulasan/Promo/Kode Akses/Statistik), akun Firebase (login admin), serta langganan nama domain `umkmdesasadomas.web.id`;
 3. 1 (satu) eksemplar Modul Panduan Penggunaan dan Pembaruan Website;
 4. Stiker Kode QR untuk <span class="isian">&nbsp;</span> (<span class="isian lebar">&nbsp;</span>) mitra UMKM;
 5. Dokumentasi pelaksanaan pelatihan penggunaan website;

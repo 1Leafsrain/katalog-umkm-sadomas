@@ -1471,7 +1471,7 @@ function halamanProduk() {
       });
       formUlasanEl.reset();
       statusUlasan.textContent =
-        "Terima kasih! Ulasan akan tampil di situs dalam waktu sekitar 30-60 menit setelah disinkronkan.";
+        "Terima kasih! Ulasan akan tampil di situs dalam waktu sekitar semenit.";
       statusUlasan.className = "status status--ok";
     } catch (err) {
       statusUlasan.textContent = "Gagal mengirim: " + err.message;
