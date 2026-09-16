@@ -30,7 +30,7 @@ const DESA = {
   "maps": "",
   "instagram": "",
   "facebook": "",
-  "fotoHero": "desa-sadomas.jpg",
+  "fotoHero": "peta-desa-sadomas.jpg",
   "fotoProfil": "balai-desa-sadomas.jpg",
   "judulProfil": "Desa bertani di kaki Gunung Ciremai",
   "paragrafProfil": "Desa Sadomas berada di Kecamatan Rajagaluh, Kabupaten Majalengka. Sebagian besar warganya bertani: padi, bibit palawija, picung, durian, dan mangga. Sebagian lagi menjalankan usaha rumahan seperti gabin tape, opak, dan keripik melinjo. Katalog ini dibuat agar produk warga bisa ditemukan tanpa perantara, dan pembeli dari luar desa bisa langsung menghubungi pemiliknya.",
