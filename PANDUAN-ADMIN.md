@@ -88,12 +88,13 @@ Repositori ini seharusnya sudah punya `data/db/umkm.json`,
 belum pernah dijalankan). Kalau mau dimulai dari kosong, cukup pastikan
 kelima berkas ini ada dan setidaknya berisi `[]`.
 
-### A3. Isi Pemilik GitHub, Repositori, dan Token di admin.html
+### A3. Isi Token GitHub di admin.html
 
-Buka `admin.html`, isi tiga kolom di bagian "Untuk UMKM / Produk / Wisata
-(GitHub)": Pemilik GitHub (nama akun/organisasi GitHub, contoh
-`1leafsrain`), Repositori (nama repo, contoh `katalog-umkm-sadomas`),
-dan Token GitHub dari langkah A1.
+Buka `admin.html`, isi kolom **Token GitHub** di bagian "Untuk UMKM /
+Produk / Wisata (GitHub)" dengan token dari langkah A1. Pemilik GitHub
+dan nama repositori TIDAK perlu diisi di sini -- sudah tertanam tetap
+di `assets/admin.js` (lihat langkah B1.10 di bawah), karena nilainya
+selalu sama untuk situs ini dan bukan rahasia.
 
 ## Bagian B -- Menyiapkan Apps Script (Ulasan/Promo/Kode Akses/Statistik)
 
@@ -150,14 +151,19 @@ bagian ini) -- bukan lagi kata sandi tertulis di source code.
    BUKAN rahasia, aman terlihat di source kode mana pun).
 8. Cari baris `var GITHUB_PEMILIK = "GANTI_PEMILIK_GITHUB";` dan
    `var GITHUB_REPO = "GANTI_NAMA_REPO";` sedikit di bawahnya. **Ganti**
-   keduanya dengan nilai yang SAMA dipakai di Bagian A3 (Pemilik GitHub
-   dan Repositori).
+   keduanya dengan nama akun/organisasi GitHub dan nama repositori
+   situs ini (nilai yang sama juga akan diisi di `assets/admin.js`
+   pada langkah 10 di bawah).
 9. Simpan (ikon disket, atau Ctrl/Cmd+S).
 10. Di repositori ini, buka `assets/admin.js`, cari
     `const firebaseConfig = { apiKey: "GANTI_FIREBASE_API_KEY",
     authDomain: "GANTI_PROJECT_ID.firebaseapp.com", projectId:
     "GANTI_PROJECT_ID" };` dekat atas. **Ganti** ketiganya dengan nilai
-    dari langkah B0.7, lalu simpan (commit) perubahan ini.
+    dari langkah B0.7. Tepat di bawahnya ada tiga konstanta lagi --
+    `GITHUB_PEMILIK`, `GITHUB_REPO`, `URL_APPS_SCRIPT` -- **ganti**
+    dengan nilai yang sama dipakai di langkah 8 di atas dan Web App URL
+    dari B3.6 nanti setelah dibuat (isi ini dulu setelah selesai
+    Bagian B3). Simpan (commit) perubahan ini.
 
 ### B2. Isi token GitHub milik SERVER (Script Properties)
 
@@ -211,10 +217,9 @@ access" memang **Anyone**.
 1. Buka `admin.html` di situs (atau tekan ikon gembok di pojok kanan atas
    tiap halaman). Yang tampil pertama kali adalah layar **Masuk**.
 2. Isi salah satu atau kedua kredensial, sesuai data yang mau diubah:
-   Pemilik GitHub + Repositori + Token (Bagian A), dan/atau Alamat Web
-   App + Email + Kata Sandi (akun Firebase dari Bagian B0.5). Boleh isi
-   satu dulu, lengkapi yang lain kapan pun -- tidak wajib keduanya
-   sekaligus.
+   Token GitHub (Bagian A), dan/atau Email + Kata Sandi (akun Firebase
+   dari Bagian B0.5). Boleh isi satu dulu, lengkapi yang lain kapan pun
+   -- tidak wajib keduanya sekaligus.
 3. Klik **Masuk**. Kredensial yang diisi akan diperiksa (token ke
    GitHub, login ke Firebase lalu diverifikasi ulang ke Apps Script);
    yang tidak diisi dilewati begitu saja. Sesi login Firebase diingat
@@ -265,8 +270,9 @@ TANPA perlu kata sandi admin ataupun token GitHub. Caranya:
    toko**, klik **+ Tambah Baru** (toko baru) atau **Ubah** pada baris
    toko yang sudah ada (mengganti kode toko itu -- misalnya kalau
    pemilik lupa kodenya atau minta diganti).
-2. Isi **Slug UMKM** (harus sama persis dengan slug tokonya di GitHub).
-   Untuk **Kode akses**, tekan tombol **Buat Otomatis** supaya terisi
+2. Pilih **UMKM** dari daftar dropdown (otomatis berisi semua UMKM yang
+   sudah ada, tidak perlu mengetik slug manual). Untuk **Kode akses**,
+   tekan tombol **Buat Otomatis** supaya terisi
    kode acak 8 karakter yang aman (dibuat di peramban, bukan ditebak-
    tebak) -- atau ketik sendiri kalau memang mau kode yang mudah
    diingat pemilik tokonya. Hindari pola yang gampang ditebak seperti
@@ -431,10 +437,9 @@ bukan saling menimpa) -- tidak ada yang perlu dilakukan pengguna.
 
 ## Kalau ada galat
 
-- **"Isi Pemilik GitHub, Repositori, dan Token GitHub di bagian
-  Pengaturan dulu."** -- muncul kalau membuka tab UMKM/Produk/Wisata
-  tapi belum mengisi kredensial GitHub. Lengkapi Bagian A3 lalu masuk
-  ulang.
+- **"Isi Token GitHub di bagian Pengaturan dulu."** -- muncul kalau
+  membuka tab UMKM/Produk/Wisata tapi belum mengisi Token GitHub.
+  Lengkapi Bagian A3 lalu masuk ulang.
 - **"Data sudah berubah sejak dimuat..."** -- lihat "Kalau ada dua
   orang mengubah bersamaan" di atas.
 - **Token GitHub ditolak (401/403) saat Masuk** -- token salah ketik,

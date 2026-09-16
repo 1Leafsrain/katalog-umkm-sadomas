@@ -39,6 +39,15 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
+// Tetap untuk situs ini -- BUKAN rahasia (nama pemilik/repo publik,
+// dan alamat Web App ini sama persis dengan URL_STATISTIK di app.js/
+// toko-saya.js yang sudah terlihat di kode publik). Dulu tiga nilai
+// ini diketik manual di form Pengaturan tiap kali; dijadikan konstanta
+// supaya admin cukup mengisi Token GitHub + Email + Kata Sandi saja.
+const GITHUB_PEMILIK = "1Leafsrain";
+const GITHUB_REPO = "katalog-umkm-sadomas";
+const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbw5ndsgrKzy_RiZrgDtMHKLanauzMdCdFWzNzsC_L3Vay4Csk7_lfqAdBenk3w4wX3Z/exec";
+
 const KUNCI_LOKAL = "admin-katalog-pengaturan";
 
 const TEKS = "teks";
@@ -46,6 +55,12 @@ const AREA = "area";
 const ANGKA = "angka";
 const CENTANG = "centang";
 const FOTO = "foto";
+// Dropdown berisi UMKM yang sedang ada (lihat daftarSlugUmkm()) --
+// dipakai di tab Promo/Kode Akses supaya admin memilih dari daftar
+// asli, bukan mengetik ulang slug persis huruf demi huruf (rawan typo
+// yang bikin promo/kode tidak nyambung ke toko mana pun tanpa
+// peringatan apa pun).
+const SLUG_UMKM = "slugUmkm";
 
 // Tiap tab disimpan di salah satu dari dua tempat -- lihat catatan di
 // atas berkas Code.gs untuk alasan pembagiannya. UMKM/PRODUK/WISATA
@@ -120,7 +135,7 @@ const SKEMA_TAB = {
     field: [
       ["slug", "Slug (huruf kecil, pakai -, tidak boleh sama dengan yang lain)", TEKS, true],
       ["nama", "Nama produk", TEKS, true],
-      ["umkm", "Slug UMKM pemilik (harus sama persis)", TEKS, true],
+      ["umkm", "UMKM pemilik", SLUG_UMKM, true],
       ["kategori", "Kategori", TEKS, true],
       ["harga", "Harga (kisaran, contoh Rp15.000 – Rp18.000)", TEKS],
       ["satuan", "Satuan (contoh per kotak isi 10 buah)", TEKS],
@@ -183,7 +198,7 @@ const SKEMA_TAB = {
     hapus: (slug) => panggilPost({ aksi: "hapusPromo", slug }),
     ringkas: (r) => r.slug + (r.aktif ? " (aktif)" : " (nonaktif)") + " — " + String(r.teks || "").slice(0, 40),
     field: [
-      ["slug", "Slug UMKM (harus sama persis)", TEKS, true],
+      ["slug", "UMKM", SLUG_UMKM, true],
       ["teks", "Isi promo", AREA, true],
       ["aktif", "Tampilkan di halaman toko", CENTANG],
     ],
@@ -197,7 +212,7 @@ const SKEMA_TAB = {
     hapus: (slug) => panggilPost({ aksi: "hapusKodeAkses", slug }),
     ringkas: (r) => r.slug + " — kode: " + r.kode,
     field: [
-      ["slug", "Slug UMKM (harus sama persis)", TEKS, true],
+      ["slug", "UMKM", SLUG_UMKM, true],
       ["kode", "Kode akses (tekan Buat Otomatis untuk kode acak yang aman, atau ketik sendiri) -- kabari pemilik toko lewat WA", TEKS, true],
     ],
   },
@@ -221,21 +236,17 @@ function simpanPengaturan(p) {
   }
 }
 
-// Nilai yang BENAR-BENAR dipakai untuk memanggil Apps Script/GitHub
-// selalu dibaca langsung dari kolom form yang sedang terlihat -- bukan
-// dari localStorage. localStorage cuma dipakai untuk MENGISI kolom ini
-// saat halaman dibuka (lihat renderPengaturan). Token admin sendiri
-// TIDAK lewat sini -- diambil langsung dari sesi Firebase Auth yang
-// sedang aktif, lihat panggilPost().
+// Pemilik/Repositori GitHub dan Alamat Web App tetap (lihat
+// GITHUB_PEMILIK/GITHUB_REPO/URL_APPS_SCRIPT di atas) -- cuma Token
+// GitHub yang masih dibaca dari kolom form yang sedang terlihat.
+// Token admin Apps Script TIDAK lewat sini -- diambil langsung dari
+// sesi Firebase Auth yang sedang aktif, lihat panggilPost().
 function nilaiPengaturanAktif() {
-  const elUrl = $("#p-url");
-  const elPemilik = $("#g-pemilik");
-  const elRepo = $("#g-repo");
   const elToken = $("#g-token");
   return {
-    url: elUrl ? elUrl.value.trim() : "",
-    githubPemilik: elPemilik ? elPemilik.value.trim() : "",
-    githubRepo: elRepo ? elRepo.value.trim() : "",
+    url: URL_APPS_SCRIPT,
+    githubPemilik: GITHUB_PEMILIK,
+    githubRepo: GITHUB_REPO,
     githubToken: elToken ? elToken.value : "",
   };
 }
@@ -280,10 +291,8 @@ async function panggilPost(payload) {
 
 function kredensialGithub() {
   const { githubPemilik, githubRepo, githubToken } = nilaiPengaturanAktif();
-  if (!githubPemilik || !githubRepo || !githubToken) {
-    throw new Error(
-      "Isi Pemilik GitHub, Repositori, dan Token GitHub di bagian Pengaturan dulu.",
-    );
+  if (!githubToken) {
+    throw new Error("Isi Token GitHub di bagian Pengaturan dulu.");
   }
   return { githubPemilik, githubRepo, githubToken };
 }
@@ -491,7 +500,12 @@ function bukaKunci() {
   $("#fieldset-data").hidden = false;
   $("#fieldset-form").hidden = false;
   $("#fieldset-statistik").hidden = false;
-  $("#btn-masuk").hidden = true;
+  // #btn-masuk SENGAJA tetap kelihatan (beda dari sebelumnya) -- kedua
+  // kredensial (Token GitHub, Email+Sandi) independen dan bisa saja
+  // baru salah satunya diisi saat pertama masuk. Tanpa ini, admin yang
+  // sudah masuk lewat Email+Sandi tidak punya cara lain untuk mengisi/
+  // memperbarui Token GitHub selain menekan Keluar dulu (yang malah
+  // memutus sesi Firebase yang sudah benar).
   $("#btn-keluar").hidden = false;
 }
 
@@ -541,9 +555,6 @@ function pesanStatus(teks, jenis) {
 
 function renderPengaturan() {
   const p = ambilPengaturan();
-  $("#p-url").value = p.url || "";
-  $("#g-pemilik").value = p.githubPemilik || "";
-  $("#g-repo").value = p.githubRepo || "";
   $("#g-token").value = p.githubToken || "";
   $("#g-ingat").checked = Boolean(p.ingatToken);
 }
@@ -564,7 +575,7 @@ function perbaruiPetunjukSumber() {
   el.textContent =
     SKEMA_TAB[tabAktif].sumber === GITHUB
       ? "Tab ini disimpan di GitHub -- butuh Token GitHub di bagian Pengaturan."
-      : "Tab ini lewat Apps Script -- butuh Alamat Web App & Kata Sandi Admin di bagian Pengaturan.";
+      : "Tab ini lewat Apps Script -- butuh Email & Kata Sandi Admin di bagian Pengaturan.";
 }
 
 // Alfabet tanpa 0/O/1/I/L (gampang ketuker saat ditulis/dibacakan lewat
@@ -575,6 +586,29 @@ function buatKodeAcak() {
   const acak = new Uint8Array(8);
   crypto.getRandomValues(acak);
   return Array.from(acak, (b) => abjad[b % abjad.length]).join("");
+}
+
+// Dipakai untuk mengisi dropdown SLUG_UMKM (lihat renderForm). Kalau
+// Token GitHub sedang terisi, baca LIVE lewat GitHub API (sama seperti
+// githubBacaBerkas) supaya UMKM yang baru saja ditambah/diubah lewat
+// tab UMKM langsung ikut muncul -- fetch biasa ke berkas statis
+// (SKEMA_TAB.UMKM.berkas) bisa saja membaca versi LAMA (berkas lokal
+// yang belum di-git-pull saat diuji lewat XAMPP, atau situs GitHub
+// Pages yang belum selesai terbit ulang), padahal GitHub API-nya
+// sendiri sudah menunjukkan data terbaru. Kalau Token GitHub kosong
+// (admin cuma mengurus Kode Akses/Promo, tidak menyentuh UMKM), tetap
+// jatuh ke fetch biasa -- data ini memang publik, tidak perlu token.
+async function daftarSlugUmkm() {
+  const { githubToken } = nilaiPengaturanAktif();
+  let data;
+  if (githubToken) {
+    data = (await githubBacaBerkas(SKEMA_TAB.UMKM.berkas)).data;
+  } else {
+    const res = await fetch(SKEMA_TAB.UMKM.berkas);
+    if (!res.ok) throw new Error("Gagal memuat daftar UMKM (status " + res.status + ").");
+    data = await res.json();
+  }
+  return data.map((u) => ({ slug: u.slug, nama: u.nama || u.slug }));
 }
 
 function renderForm() {
@@ -610,6 +644,37 @@ function renderForm() {
         input.value = buatKodeAcak();
       });
       baris.append(elemen("div", { kelas: "f-foto-alat" }, input, tombolAcak));
+    } else if (tipe === SLUG_UMKM) {
+      const select = elemen(
+        "select",
+        { id: idInput, name: kunci },
+        elemen("option", { value: "" }, "Memuat daftar UMKM..."),
+      );
+      select.disabled = true;
+      daftarSlugUmkm()
+        .then((daftar) => {
+          const nilaiDiminta = select.dataset.nilaiDiminta || "";
+          select.innerHTML = "";
+          select.append(elemen("option", { value: "" }, "-- Pilih UMKM --"));
+          daftar.forEach((u) => {
+            select.append(elemen("option", { value: u.slug }, u.nama + " — " + u.slug));
+          });
+          // UMKM-nya sudah dihapus/berubah slug tapi baris promo/kode
+          // akses lama masih menunjuk ke situ -- tetap tampilkan
+          // pilihannya supaya nilai tidak diam-diam berubah/hilang.
+          if (nilaiDiminta && !daftar.some((u) => u.slug === nilaiDiminta)) {
+            select.append(elemen("option", { value: nilaiDiminta }, nilaiDiminta + " (UMKM tidak ditemukan)"));
+          }
+          select.value = nilaiDiminta;
+          select.disabled = false;
+        })
+        .catch((err) => {
+          select.innerHTML = "";
+          select.append(elemen("option", { value: "" }, "Gagal memuat daftar UMKM"));
+          pesanStatus("Gagal memuat daftar UMKM untuk pilihan '" + label + "': " + err.message, "galat");
+          select.disabled = false;
+        });
+      baris.append(select);
     } else {
       baris.append(elemen("input", { id: idInput, name: kunci, type: "text" }));
     }
@@ -636,7 +701,13 @@ function isiFormDariData(data) {
       const v = String(data[kunci] || "").toUpperCase();
       input.checked = v === "TRUE" || v === "1" || v === "YA";
     } else {
-      input.value = data[kunci] != null ? data[kunci] : "";
+      const nilai = data[kunci] != null ? data[kunci] : "";
+      input.value = nilai;
+      // select SLUG_UMKM bisa saja masih memuat daftarnya (fetch async
+      // di renderForm) saat ini dipanggil -- simpan nilai yang diminta
+      // supaya diterapkan ulang begitu daftarnya selesai dimuat (lihat
+      // renderForm). Tidak berpengaruh untuk input biasa.
+      if (input.tagName === "SELECT") input.dataset.nilaiDiminta = nilai;
       if (tipe === FOTO) {
         const pratinjau = $("#f-" + kunci + "-pratinjau");
         const jalur = jalurFotoTampil(input.value);
@@ -777,46 +848,45 @@ function pasang() {
 
   $("#form-pengaturan").addEventListener("submit", async (ev) => {
     ev.preventDefault();
-    const url = $("#p-url").value.trim();
     const email = $("#p-email").value.trim();
     const sandi = $("#p-sandi").value;
-    const githubPemilik = $("#g-pemilik").value.trim();
-    const githubRepo = $("#g-repo").value.trim();
     const githubToken = $("#g-token").value;
-    const isiAppsScript = Boolean(url || email || sandi);
-    const isiGithub = Boolean(githubPemilik || githubRepo || githubToken);
+    // Ditentukan dari Kata Sandi saja (bukan Email juga) -- #p-email
+    // ikut terisi otomatis dari sesi Firebase yang sudah aktif (lihat
+    // onAuthStateChanged di bawah), jadi kalau email dipakai juga di
+    // sini, admin yang SUDAH masuk dan cuma mau menambah/mengganti
+    // Token GitHub bakal dipaksa mengetik ulang Kata Sandi padahal
+    // tidak sedang mencoba login ulang sama sekali.
+    const isiAppsScript = Boolean(sandi);
+    const isiGithub = Boolean(githubToken);
 
     if (!isiAppsScript && !isiGithub) {
-      pesanStatus(
-        "Isi Alamat Web App + Email + Kata Sandi, dan/atau Pemilik GitHub + Repositori + Token.",
-        "galat",
-      );
+      pesanStatus("Isi Email + Kata Sandi, dan/atau Token GitHub.", "galat");
       return;
     }
     pesanStatus("Memeriksa...", "");
     try {
       if (isiAppsScript) {
-        if (!url || !email || !sandi) throw new Error("Alamat Web App, Email, dan Kata Sandi harus diisi bertiga.");
+        if (!email) throw new Error("Isi Email juga.");
         await firebase.auth().signInWithEmailAndPassword(email, sandi);
         await panggilPost({ aksi: "cekSandi" });
       }
       if (isiGithub) {
-        if (!githubPemilik || !githubRepo || !githubToken) {
-          throw new Error("Pemilik GitHub, Repositori, dan Token harus diisi bertiga.");
-        }
         await cekGithub();
       }
       simpanPengaturan({
-        url,
-        githubPemilik,
-        githubRepo,
         githubToken: $("#g-ingat").checked ? githubToken : "",
         ingatToken: $("#g-ingat").checked,
       });
       $("#p-sandi").value = "";
       bukaKunci();
-      muatDaftar();
-      muatStatistik();
+      // Cuma muat daftar tab yang sedang aktif kalau kredensial yang
+      // dibutuhkannya memang baru diisi -- kalau tidak, pesan galat
+      // "belum diisi" dari muatDaftar akan menimpa "Berhasil masuk."
+      // di bawah ini padahal login itu sendiri sukses (mis. admin cuma
+      // mau isi Kode Akses, tidak mengisi Token GitHub sama sekali).
+      if (SKEMA_TAB[tabAktif].sumber === GITHUB ? isiGithub : isiAppsScript) muatDaftar();
+      if (isiAppsScript) muatStatistik();
       pesanStatus("Berhasil masuk.", "ok");
     } catch (err) {
       pesanStatus("Gagal masuk: " + err.message, "galat");
@@ -825,13 +895,7 @@ function pasang() {
 
   $("#btn-keluar").addEventListener("click", async () => {
     await firebase.auth().signOut();
-    simpanPengaturan({
-      url: $("#p-url").value.trim(),
-      githubPemilik: $("#g-pemilik").value.trim(),
-      githubRepo: $("#g-repo").value.trim(),
-      githubToken: "",
-      ingatToken: false,
-    });
+    simpanPengaturan({ githubToken: "", ingatToken: false });
     $("#p-sandi").value = "";
     $("#g-token").value = "";
     $("#g-ingat").checked = false;
@@ -848,25 +912,29 @@ function pasang() {
   // percaya begitu saja ke status login Firebase di peramban. GitHub
   // tetap independen seperti sebelumnya (localStorage kita sendiri).
   const tersimpan = ambilPengaturan();
-  const cobaGithub = Boolean(tersimpan.githubPemilik && tersimpan.githubRepo && tersimpan.githubToken);
+  const cobaGithub = Boolean(tersimpan.githubToken);
   let sudahCobaOtomatis = false;
   firebase.auth().onAuthStateChanged((pengguna) => {
     if (pengguna) $("#p-email").value = pengguna.email || "";
     if (sudahCobaOtomatis) return;
     sudahCobaOtomatis = true;
 
-    const cobaAppsScript = Boolean(pengguna && tersimpan.url);
+    const cobaAppsScript = Boolean(pengguna);
     if (!cobaAppsScript && !cobaGithub) return;
-    if (tersimpan.url) $("#p-url").value = tersimpan.url;
     pesanStatus("Memeriksa sesi tersimpan...", "");
     Promise.all([
       cobaAppsScript ? panggilPost({ aksi: "cekSandi" }).then(() => "").catch((e) => "Apps Script: " + e.message) : "",
       cobaGithub ? cekGithub().then(() => "").catch((e) => "GitHub: " + e.message) : "",
     ]).then(([galatAppsScript, galatGithub]) => {
-      if ((cobaAppsScript && !galatAppsScript) || (cobaGithub && !galatGithub)) {
+      const appsScriptOk = cobaAppsScript && !galatAppsScript;
+      const githubOk = cobaGithub && !galatGithub;
+      if (appsScriptOk || githubOk) {
         bukaKunci();
-        muatDaftar();
-        muatStatistik();
+        // Sama seperti di form Masuk -- jangan muat tab yang
+        // kredensialnya belum/tidak terbukti valid, supaya galatnya
+        // tidak menimpa pesan sesi di bawah ini.
+        if (SKEMA_TAB[tabAktif].sumber === GITHUB ? githubOk : appsScriptOk) muatDaftar();
+        if (appsScriptOk) muatStatistik();
       }
       const galat = [galatAppsScript, galatGithub].filter(Boolean);
       pesanStatus(galat.length ? "Sesi tersimpan tidak semuanya berlaku lagi -- " + galat.join("; ") : "", galat.length ? "galat" : "");
