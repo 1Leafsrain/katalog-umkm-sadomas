@@ -130,7 +130,7 @@ const UMKM = [
     "nama": "Kerupuk Kulit Sapi Sadomas",
     "kategori": "kuliner",
     "pemilik": "Rena Reno Ratu",
-    "wa": "GANTI_NOMOR_WA",
+    "wa": "62822129045352",
     "alamat": "GANTI: blok / RT / RW",
     "foto": "kerupuk-kulit-2.jpg",
     "penilaian": 0,
@@ -210,6 +210,24 @@ const UMKM = [
     "pengiriman": "Ambil di tempat",
     "fotoLokasi": "",
     "deskripsi": "Minuman es teh kekinian dengan berbagai rasa buah, ditambah pilihan milkshake seperti matcha, taro ube, thai tea, avocado, dan royal chocolate.",
+    "promo": {
+      "teks": "",
+      "aktif": false
+    }
+  },
+  {
+    "slug": "puding-mochi-pak-asep",
+    "nama": "Puding & Mochi Pak Asep",
+    "kategori": "kuliner",
+    "pemilik": "Asep",
+    "wa": "62895322219376",
+    "alamat": "",
+    "foto": "",
+    "penilaian": 0,
+    "jamBuka": "",
+    "pengiriman": "",
+    "fotoLokasi": "",
+    "deskripsi": "Menjual puding, mochi, dan bubur sumsum buatan rumahan.",
     "promo": {
       "teks": "",
       "aktif": false
