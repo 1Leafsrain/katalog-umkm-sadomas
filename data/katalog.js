@@ -214,6 +214,24 @@ const UMKM = [
       "teks": "",
       "aktif": false
     }
+  },
+  {
+    "slug": "Tes 1",
+    "nama": "tes 2",
+    "kategori": "tes 2",
+    "pemilik": "tes 2",
+    "wa": "08978462751",
+    "alamat": "tes 2",
+    "foto": "1789532000909-0d2c16a4-2cea-404c-ad8d-e1533b7696a9.jpg",
+    "penilaian": 0,
+    "jamBuka": "08.30",
+    "pengiriman": "ambil di tempat",
+    "fotoLokasi": "",
+    "deskripsi": "tes 2",
+    "promo": {
+      "teks": "",
+      "aktif": false
+    }
   }
 ];
 
