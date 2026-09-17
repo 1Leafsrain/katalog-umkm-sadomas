@@ -232,6 +232,24 @@ const UMKM = [
       "teks": "",
       "aktif": false
     }
+  },
+  {
+    "slug": "Toko bangunan",
+    "nama": "Toko bangungan Sinar Jaya",
+    "kategori": "bahan bangunan",
+    "pemilik": "Pak bayu",
+    "wa": "08188117",
+    "alamat": "RT 05/ RW 03 BLOK",
+    "foto": "1789616832121-2951db3b-357a-4e60-8e58-c287ed4554ca.jpg",
+    "penilaian": 0,
+    "jamBuka": "08.30 - 17.00",
+    "pengiriman": "ambil di tempat",
+    "fotoLokasi": "",
+    "deskripsi": "Toko bangunan yang menyediakan bahan bangunan lengkap",
+    "promo": {
+      "teks": "",
+      "aktif": false
+    }
   }
 ];
 
