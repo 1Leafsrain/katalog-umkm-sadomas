@@ -40,7 +40,7 @@ const DESA = {
     "teks": "Warga Desa Sadomas yang punya usaha rumahan bisa didaftarkan ke katalog ini tanpa biaya. Hubungi sekretariat desa atau pengurus Karang Taruna untuk pendataan."
   },
   "jiwa": "1.863",
-  "wilayah": "5 RW / 7 RT",
+  "wilayah": "4 RW / 7 RT",
   "catatanAngka": "Data monografi desa, perlu diperbarui bila ada pendataan baru."
 };
 
